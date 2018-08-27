@@ -29,6 +29,8 @@ v1.2	2018.05.14
 		6. Add BGP/IP prefix check
 		7. Ping tool: add customer election/peer election
 		8. Popup send mail window if can't find the peer/realm in ccb
+		
+
 
 Pending function: 
 1. UPX compressed, smaller size 20M --> 15M
@@ -51,6 +53,7 @@ from Input_alarms_ui import *
 from ssh_ping_cmd import ssh_onetime_ping, ssh_jump_server_cmd,ssh_jump_server_juniper_cmd,ssh_jump_server_cisco_cmd
 from SendEmail import sendemail,html_line_break
 from get_router_list_from_traceroute import *
+from All_Day_Ping_Result_ui import *
 
 
 """****************************************************************************************************"""
@@ -60,6 +63,7 @@ from get_router_list_from_traceroute import *
 class MyMainWindow(QMainWindow, Ui_MainWindow):
 	
 	account_result_signal = pyqtSignal(str)
+	send_ping_result_signal= pyqtSignal(str)
 	
 	def __init__(self, parent=None):    
 		super(MyMainWindow, self).__init__(parent)
@@ -784,16 +788,21 @@ where ni.item='DSC_Peer' group by ni.value;"""
 		username="g800472"
 		password="Selenium666$"
 		try:
+			print(self.textEdit_traceroute_result.toPlainText())
 			router_list=get_router_list_from_traceroute(self.textEdit_traceroute_result.toPlainText(),username,password)
 			print(router_list)
 		except Exception as e:
-			print(e)
+			QMessageBox.information(self,"Warning","The traceroute result log you pasted is not right(Check the example).",QMessageBox.Ok)
+		
+		else:
+			all_Day_Ping_Result.show()
 
-		"""serverlist=['10.164.28.175','10.164.28.176','10.164.28.253','10.164.20.49','10.164.20.50','10.166.28.189','10.166.28.190','10.166.29.2','10.166.20.54','10.166.20.55']
-		for i in serverlist:
-			if 'tail -f' in self.textEdit_command.toPlainText():
-				time.sleep(0.2)
-			t= threading.Thread(target=self.sendmultiserver,args=(i,))
+			router1=router_list[0]['router_name']
+			ping_result=ssh_jump_server_juniper_cmd(router1,username,password,"ping 192.168.71.206 count 5 rapid wait 1","show system uptime | match current")
+			print(ping_result)
+			self.send_ping_result_signal.emit(ping_result)
+		"""for i in router_list:
+			t= threading.Thread(target=self.send_multi_routers,args=(i,))
 			t.start()
 		self.label_status.setText('Status: In Progress...')"""
 
@@ -853,20 +862,46 @@ class Input_alarms(QMainWindow, Ui_Dialog_input_alarms):
 
 
 """****************************************************************************************************"""
-"""***************************                  4. Run               **********************************"""
+"""***************************          4. All day ping result window          ********************************"""
+"""****************************************************************************************************"""
+
+class All_Day_Ping_Result(QMainWindow, Ui_all_day_ping_result_popup):
+
+	#alarms_inputed_signal = pyqtSignal(str)
+
+	def __init__(self, parent=None):    
+		super(All_Day_Ping_Result, self).__init__(parent)
+		self.setupUi(self)
+
+		#self.pushButton_cancel.clicked.connect(self.close)
+		#self.pushButton_ok.clicked.connect(self.alarms_inputed)
+		
+	def receive_ping_result(self,str_received_ping_result):
+		result_log_old=self.textEdit_ping_result_1.toPlainText()
+		self.textEdit_ping_result_1.setPlainText(result_log_old+"\n***************************************\n"+"\n"+str_received_ping_result)
+		
+
+
+
+"""****************************************************************************************************"""
+"""***************************                  5. Run               **********************************"""
 """****************************************************************************************************"""
 if __name__=="__main__":  
 	app = QApplication(sys.argv)  
 	myWin = MyMainWindow()  
 	myWin.show()  
 	mylogin = My_login()  
-	mylogin.show() 
+	mylogin.show()
+	all_Day_Ping_Result=All_Day_Ping_Result() 
 	
 	myWin.account_result_signal.connect(mylogin.close_login_window)
+	myWin.send_ping_result_signal.connect(all_Day_Ping_Result.receive_ping_result)
 	mylogin.login_signal.connect(myWin.test_account)
 
 	input_alarms=Input_alarms()
 	input_alarms.alarms_inputed_signal.connect(myWin.alarm_content_handler)
 	input_alarms.alarms_inputed_signal.connect(myWin.generatecmd_troubleshooting)
+	
+
 
 	sys.exit(app.exec_())  

@@ -142,12 +142,13 @@ def get_router_list_from_traceroute(traceroute,user_name,password):
 		record['next_hop_ip'] = ip_list[m+1]
 		output.append(record)
 		m += 1
-	print(output)
+	return (output)
 	#for o in output:
 	#	print(o)
 		
-			
-#get_router_list_from_traceroute(traceroute,user_name,password)
+		
+if __name__=="__main__": 
+	get_router_list_from_traceroute(traceroute,"g800472","Selenium666$")
 
 
 
