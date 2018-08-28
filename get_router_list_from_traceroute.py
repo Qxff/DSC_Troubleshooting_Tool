@@ -52,7 +52,7 @@ traceroute = '''
  4  * 192.168.71.229 (192.168.71.229)  74.583 ms  74.711 ms
  5  192.168.71.70 (192.168.71.70)  74.786 ms  75.796 ms  75.639 ms
  6  172.27.4.213 (172.27.4.213)  75.686 ms  73.319 ms  73.354 ms
- 7  131.166.150.157 (131.166.150.157)  73.967 ms  73.725 ms  73.803 ms
+ 7  131.166.150.15 (131.166.150.157)  73.967 ms  73.725 ms  73.803 ms
  8  10.91.25.209 (10.91.25.209)  73.642 ms  73.498 ms  73.590 ms
  9  * * *
 10  * * *
@@ -148,8 +148,8 @@ def get_router_list_from_traceroute(traceroute,user_name,password):
 		
 		
 if __name__=="__main__": 
-	get_router_list_from_traceroute(traceroute,"g800472","Selenium666$")
-
+	result=get_router_list_from_traceroute(traceroute,"g800472","Selenium666$")
+	print(result)
 
 
 

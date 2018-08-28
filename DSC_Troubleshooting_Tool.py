@@ -43,6 +43,7 @@ import sys,os
 import re
 import paramiko
 import copy
+import time
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -54,6 +55,7 @@ from ssh_ping_cmd import ssh_onetime_ping, ssh_jump_server_cmd,ssh_jump_server_j
 from SendEmail import sendemail,html_line_break
 from get_router_list_from_traceroute import *
 from All_Day_Ping_Result_ui import *
+import threading
 
 
 """****************************************************************************************************"""
@@ -63,7 +65,7 @@ from All_Day_Ping_Result_ui import *
 class MyMainWindow(QMainWindow, Ui_MainWindow):
 	
 	account_result_signal = pyqtSignal(str)
-	send_ping_result_signal= pyqtSignal(str)
+	send_ping_result_signal= pyqtSignal(str,int)
 	
 	def __init__(self, parent=None):    
 		super(MyMainWindow, self).__init__(parent)
@@ -779,9 +781,10 @@ where ni.item='DSC_Peer' group by ni.value;"""
 		except NameError:
 			pass
 			
-			
 
-#***    Function: 7*24 Ping     ***
+#********************************************************************************************************
+#********************************    Function: 7*24 Ping     ********************************************
+#********************************************************************************************************
 
 	def start_7_24_ping(self):
 		global username, password
@@ -789,22 +792,91 @@ where ni.item='DSC_Peer' group by ni.value;"""
 		password="Selenium666$"
 		try:
 			print(self.textEdit_traceroute_result.toPlainText())
+			information_start="You are going to start the 7*24 ping hop-by-hop per your traceroute."+"\n" +"Click OK to start(May take few seconds)."
+			QMessageBox.information(self,"Information",information_start,QMessageBox.Ok)
 			router_list=get_router_list_from_traceroute(self.textEdit_traceroute_result.toPlainText(),username,password)
 			print(router_list)
+			
 		except Exception as e:
 			QMessageBox.information(self,"Warning","The traceroute result log you pasted is not right(Check the example).",QMessageBox.Ok)
-		
+
 		else:
 			all_Day_Ping_Result.show()
 
-			router1=router_list[0]['router_name']
-			ping_result=ssh_jump_server_juniper_cmd(router1,username,password,"ping 192.168.71.206 count 5 rapid wait 1","show system uptime | match current")
-			print(ping_result)
-			self.send_ping_result_signal.emit(ping_result)
-		"""for i in router_list:
-			t= threading.Thread(target=self.send_multi_routers,args=(i,))
-			t.start()
-		self.label_status.setText('Status: In Progress...')"""
+			#router1=router_list[3]['router_name']
+			
+			for router in router_list:
+				t= threading.Thread(target=self.ping_routers_exe,args=(router,router_list.index(router)))
+				print(router)
+				print(router_list.index(router))
+				t.start()
+			#ping_result=ssh_jump_server_juniper_cmd(router1,username,password,"ping 192.168.71.206 count 5 rapid wait 1","show system uptime | match current")
+			#print(ping_result)
+	
+	def ping_routers_exe(self,router,router_index):
+			#print(router)
+			#print(router_index)
+			ssh = paramiko.SSHClient()
+			ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+			ssh.connect(hostname="10.12.7.16", port=22, username=username, password=password)
+			chan=ssh.invoke_shell()
+			if router['vendor']=='Juniper':
+				ssh_router_cmd="ssh " + router['router_name']
+				print(ssh_router_cmd)
+				chan.send(ssh_router_cmd+'\n')
+				time.sleep(4)
+				res=chan.recv(65535).decode('utf8')
+				if '(yes/no)' in res:
+					chan.send('yes'+'\n')
+					time.sleep(2)
+				chan.send(password+'\n')
+				time.sleep(2)
+				res=chan.recv(65535)
+				cmd1="show system uptime | match current"
+				cmd2="ping " + router['next_hop_ip'] +' count 5 rapid wait 1'
+			else:
+				telnet_router_cmd="telnet " + router['router_name']
+				print(telnet_router_cmd)
+				chan.send(telnet_router_cmd+'\n')
+				time.sleep(2)
+				res=chan.recv(65535).decode('utf8')
+				if '(yes/no)' in res:
+					chan.send('yes'+'\n')
+					time.sleep(2)
+				chan.send(username+'\n')
+				time.sleep(2)
+				chan.send(password+'\n')
+				time.sleep(2)
+				res=chan.recv(65535)
+				cmd1="show clock"
+				cmd2="ping " + router['next_hop_ip']
+
+			result = ''
+
+			while True:
+				chan.send(cmd1+'\n')
+				time.sleep(1)
+				chan.send(cmd2+'\n')
+				time.sleep(2)
+
+				res = chan.recv(65535).decode('utf8')
+				if  '100 percent' not in res and '5 packets received' not in res:
+					res1=res
+					print(res1)
+					time.sleep(11)
+					res = res1+chan.recv(65535).decode('utf8')
+					#print(res)
+				result = res
+				if result:
+					ping_result=result.strip('\n')
+					#print(ping_result)
+					self.send_ping_result_signal.emit(ping_result,router_index)
+
+				#if res.endswith('> '):
+				#	break
+				#	ssh.close()
+
+				#self.label_status.setText('Status: In Progress...')
 
 
 """****************************************************************************************************"""
@@ -876,11 +948,42 @@ class All_Day_Ping_Result(QMainWindow, Ui_all_day_ping_result_popup):
 		#self.pushButton_cancel.clicked.connect(self.close)
 		#self.pushButton_ok.clicked.connect(self.alarms_inputed)
 		
-	def receive_ping_result(self,str_received_ping_result):
-		result_log_old=self.textEdit_ping_result_1.toPlainText()
-		self.textEdit_ping_result_1.setPlainText(result_log_old+"\n***************************************\n"+"\n"+str_received_ping_result)
-		
+	def receive_ping_result(self,str_received_ping_result,router_index):
 
+		if '100 percent' not in str_received_ping_result and '5 packets received' not in str_received_ping_result:
+			#print(str_received_ping_result)
+			package_loss_log_old=self.textEdit_package_loss_log.toPlainText()
+			self.textEdit_package_loss_log.setPlainText(package_loss_log_old+"\n***************************************\n"+str_received_ping_result)
+			
+		if router_index==0:
+			result_log_old_1=self.textEdit_ping_result_1.toPlainText()
+			self.textEdit_ping_result_1.setPlainText(result_log_old_1+"\n***************************************\n"+str_received_ping_result)
+		elif router_index==1:
+			result_log_old_2=self.textEdit_ping_result_2.toPlainText()
+			self.textEdit_ping_result_2.setPlainText(result_log_old_2+"\n***************************************\n"+str_received_ping_result)
+		elif router_index==2:
+			result_log_old_3=self.textEdit_ping_result_3.toPlainText()
+			self.textEdit_ping_result_3.setPlainText(result_log_old_3+"\n***************************************\n"+str_received_ping_result)
+		elif router_index==3:
+			result_log_old_4=self.textEdit_ping_result_4.toPlainText()
+			self.textEdit_ping_result_4.setPlainText(result_log_old_4+"\n***************************************\n"+str_received_ping_result)
+		elif router_index==4:
+			result_log_old_5=self.textEdit_ping_result_5.toPlainText()
+			self.textEdit_ping_result_5.setPlainText(result_log_old_5+"\n***************************************\n"+str_received_ping_result)
+		elif router_index==5:
+			result_log_old_6=self.textEdit_ping_result_6.toPlainText()
+			self.textEdit_ping_result_6.setPlainText(result_log_old_6+"\n***************************************\n"+str_received_ping_result)
+		elif router_index==6:
+			result_log_old_7=self.textEdit_ping_result_7.toPlainText()
+			self.textEdit_ping_result_7.setPlainText(result_log_old_7+"\n***************************************\n"+str_received_ping_result)
+		elif router_index==7:
+			result_log_old_8=self.textEdit_ping_result_8.toPlainText()
+			self.textEdit_ping_result_8.setPlainText(result_log_old_8+"\n***************************************\n"+str_received_ping_result)
+		else:
+			print('router_index=')
+			print(router_index)
+			result_log_old_9=self.textEdit_ping_result_9.toPlainText()
+			self.textEdit_ping_result_9.setPlainText(result_log_old_9+"\n***************************************\n"+str_received_ping_result)
 
 
 """****************************************************************************************************"""

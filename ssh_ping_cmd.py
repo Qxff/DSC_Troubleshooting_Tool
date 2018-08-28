@@ -232,6 +232,8 @@ def ssh_jump_server_cisco_cmd(router_name,username,password,cmd1,cmd2):
 	#close the connection"""
 	ssh.close()
 
+
+
 if __name__=="__main__": 
 	print('before')
 	#results=ssh_jump_server_juniper_cmd("r002-hnk2-ngn.ncc.syniverse.com","g800472","Selenium666$","ping 192.168.71.206 count 5 rapid wait 1","show system uptime | match current")
