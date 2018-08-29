@@ -1946,7 +1946,7 @@ p, li { white-space: pre-wrap; }
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Arial'; font-size:9pt; font-weight:400; font-style:italic;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-style:normal; color:#0000ff;&quot;&gt;Step1: &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:normal; color:#0000ff;&quot;&gt;Plaste&lt;/span&gt;&lt;span style=&quot; font-style:normal; color:#0000ff;&quot;&gt; traceroute result here as&lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:normal; color:#0000ff;&quot;&gt; example &lt;/span&gt;&lt;span style=&quot; font-style:normal; color:#0000ff;&quot;&gt;below &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-style:normal; color:#0000ff;&quot;&gt;Step1: Plaste &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:normal; color:#0000ff;&quot;&gt;traceroute result &lt;/span&gt;&lt;span style=&quot; font-style:normal; color:#0000ff;&quot;&gt;here as&lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:normal; color:#0000ff;&quot;&gt; example &lt;/span&gt;&lt;span style=&quot; font-style:normal; color:#0000ff;&quot;&gt;below &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="textFormat">
        <enum>Qt::AutoText</enum>
@@ -2055,9 +2055,9 @@ p, li { white-space: pre-wrap; }
      <widget class="QPushButton" name="pushButton_start_7_24_ping">
       <property name="geometry">
        <rect>
-        <x>550</x>
-        <y>60</y>
-        <width>211</width>
+        <x>490</x>
+        <y>330</y>
+        <width>271</width>
         <height>31</height>
        </rect>
       </property>
@@ -2074,6 +2074,12 @@ p, li { white-space: pre-wrap; }
       <property name="text">
        <string>Start 7*24 Ping</string>
       </property>
+      <property name="iconSize">
+       <size>
+        <width>16</width>
+        <height>32</height>
+       </size>
+      </property>
       <property name="default">
        <bool>false</bool>
       </property>
@@ -2081,8 +2087,171 @@ p, li { white-space: pre-wrap; }
      <widget class="QLabel" name="label_33">
       <property name="geometry">
        <rect>
-        <x>549</x>
+        <x>489</x>
         <y>21</y>
+        <width>511</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Arial</family>
+        <pointsize>9</pointsize>
+        <italic>true</italic>
+        <kerning>true</kerning>
+       </font>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Arial'; font-size:9pt; font-weight:400; font-style:italic;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-style:normal; color:#0000ff;&quot;&gt;Step2: Push &amp;quot;&lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:normal; color:#0000ff;&quot;&gt;Analyze Traceroute Result&lt;/span&gt;&lt;span style=&quot; font-style:normal; color:#0000ff;&quot;&gt;&amp;quot; button to check your traceroute reuslt&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="textFormat">
+       <enum>Qt::AutoText</enum>
+      </property>
+     </widget>
+     <widget class="Line" name="line_9">
+      <property name="geometry">
+       <rect>
+        <x>489</x>
+        <y>30</y>
+        <width>691</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_analyze_traceroute_result">
+      <property name="geometry">
+       <rect>
+        <x>490</x>
+        <y>50</y>
+        <width>271</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>9</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Analyze Traceroute Result</string>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>16</width>
+        <height>32</height>
+       </size>
+      </property>
+      <property name="default">
+       <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QTextEdit" name="textEdit_traceroute_analysis_result">
+      <property name="geometry">
+       <rect>
+        <x>490</x>
+        <y>90</y>
+        <width>691</width>
+        <height>181</height>
+       </rect>
+      </property>
+      <property name="palette">
+       <palette>
+        <active>
+         <colorrole role="Base">
+          <brush brushstyle="SolidPattern">
+           <color alpha="255">
+            <red>255</red>
+            <green>255</green>
+            <blue>255</blue>
+           </color>
+          </brush>
+         </colorrole>
+         <colorrole role="Window">
+          <brush brushstyle="SolidPattern">
+           <color alpha="255">
+            <red>255</red>
+            <green>255</green>
+            <blue>255</blue>
+           </color>
+          </brush>
+         </colorrole>
+        </active>
+        <inactive>
+         <colorrole role="Base">
+          <brush brushstyle="SolidPattern">
+           <color alpha="255">
+            <red>255</red>
+            <green>255</green>
+            <blue>255</blue>
+           </color>
+          </brush>
+         </colorrole>
+         <colorrole role="Window">
+          <brush brushstyle="SolidPattern">
+           <color alpha="255">
+            <red>255</red>
+            <green>255</green>
+            <blue>255</blue>
+           </color>
+          </brush>
+         </colorrole>
+        </inactive>
+        <disabled>
+         <colorrole role="Base">
+          <brush brushstyle="SolidPattern">
+           <color alpha="255">
+            <red>255</red>
+            <green>255</green>
+            <blue>255</blue>
+           </color>
+          </brush>
+         </colorrole>
+         <colorrole role="Window">
+          <brush brushstyle="SolidPattern">
+           <color alpha="255">
+            <red>255</red>
+            <green>255</green>
+            <blue>255</blue>
+           </color>
+          </brush>
+         </colorrole>
+        </disabled>
+       </palette>
+      </property>
+      <property name="autoFillBackground">
+       <bool>true</bool>
+      </property>
+      <property name="html">
+       <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="placeholderText">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_35">
+      <property name="geometry">
+       <rect>
+        <x>500</x>
+        <y>291</y>
         <width>251</width>
         <height>16</height>
        </rect>
@@ -2103,19 +2272,19 @@ p, li { white-space: pre-wrap; }
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Arial'; font-size:9pt; font-weight:400; font-style:italic;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-style:normal; color:#0000ff;&quot;&gt;Step2: Push &amp;quot;&lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:normal; color:#0000ff;&quot;&gt;Start 7*24 Ping&lt;/span&gt;&lt;span style=&quot; font-style:normal; color:#0000ff;&quot;&gt;&amp;quot; button to start&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-style:normal; color:#0000ff;&quot;&gt;Step3: Push &amp;quot;&lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:normal; color:#0000ff;&quot;&gt;Start 7*24 Ping&lt;/span&gt;&lt;span style=&quot; font-style:normal; color:#0000ff;&quot;&gt;&amp;quot; button to start&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="textFormat">
        <enum>Qt::AutoText</enum>
       </property>
      </widget>
-     <widget class="Line" name="line_9">
+     <widget class="Line" name="line_11">
       <property name="geometry">
        <rect>
-        <x>549</x>
-        <y>30</y>
-        <width>281</width>
-        <height>20</height>
+        <x>500</x>
+        <y>300</y>
+        <width>691</width>
+        <height>16</height>
        </rect>
       </property>
       <property name="orientation">

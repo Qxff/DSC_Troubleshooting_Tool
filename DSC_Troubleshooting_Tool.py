@@ -56,6 +56,7 @@ from SendEmail import sendemail,html_line_break
 from get_router_list_from_traceroute import *
 from All_Day_Ping_Result_ui import *
 import threading
+import pyperclip
 
 
 """****************************************************************************************************"""
@@ -104,6 +105,7 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
 		self.pushButton_s2sping.clicked.connect(self.ssh_exe_cmd)
 		self.pushButton_s2stracert.clicked.connect(self.ssh_exe_cmd)
 		self.pushButton_start_7_24_ping.clicked.connect(self.start_7_24_ping)
+		self.pushButton_analyze_traceroute_result.clicked.connect(self.analyse_traceroute_result)
 		
 		#troubleshooting tool
 		self.pushButton_input_alarms.clicked.connect(self.input_alarms)
@@ -786,25 +788,44 @@ where ni.item='DSC_Peer' group by ni.value;"""
 #********************************    Function: 7*24 Ping     ********************************************
 #********************************************************************************************************
 
-	def start_7_24_ping(self):
-		global username, password
+	def analyse_traceroute_result(self):
+		global username, password,router_list
 		username="g800472"
 		password="Selenium666$"
+
 		try:
-			print(self.textEdit_traceroute_result.toPlainText())
-			information_start="You are going to start the 7*24 ping hop-by-hop per your traceroute."+"\n" +"Click OK to start(May take few seconds)."
-			QMessageBox.information(self,"Information",information_start,QMessageBox.Ok)
+			#print(self.textEdit_traceroute_result.toPlainText())
 			router_list=get_router_list_from_traceroute(self.textEdit_traceroute_result.toPlainText(),username,password)
 			print(router_list)
-			
+			n=1
+			for router in router_list:
+				routerinfo_old=self.textEdit_traceroute_analysis_result.toPlainText()
+				self.textEdit_traceroute_analysis_result.setPlainText(routerinfo_old+'\n'+str(n)+': '+str(router))
+				n=n+1
+		except Exception as e:
+			print(e)
+			QMessageBox.information(self,"Warning","The traceroute result you pasted is not right. Please check the example.",QMessageBox.Ok)
+
+	def start_7_24_ping(self):
+		global username, password,router_list
+		username="g800472"
+		password="Selenium666$"
+		"""try:
+			print(self.textEdit_traceroute_result.toPlainText())
+			#information_start="You are going to start the 7*24 ping hop-by-hop per your traceroute."+"\n" +"Click OK to start(May take few seconds)."
+			#QMessageBox.information(self,"Information",information_start,QMessageBox.Ok)
+			all_Day_Ping_Result.show()
+			router_list=get_router_list_from_traceroute(self.textEdit_traceroute_result.toPlainText(),username,password)
+			print(router_list)
+
 		except Exception as e:
 			QMessageBox.information(self,"Warning","The traceroute result log you pasted is not right(Check the example).",QMessageBox.Ok)
-
+			all_Day_Ping_Result.close()
 		else:
-			all_Day_Ping_Result.show()
-
-			#router1=router_list[3]['router_name']
-			
+			#all_Day_Ping_Result.show()
+			#router1=router_list[3]['router_name']"""
+		try:
+			#all_Day_Ping_Result.show()
 			for router in router_list:
 				t= threading.Thread(target=self.ping_routers_exe,args=(router,router_list.index(router)))
 				print(router)
@@ -812,71 +833,82 @@ where ni.item='DSC_Peer' group by ni.value;"""
 				t.start()
 			#ping_result=ssh_jump_server_juniper_cmd(router1,username,password,"ping 192.168.71.206 count 5 rapid wait 1","show system uptime | match current")
 			#print(ping_result)
+		except:
+			#all_Day_Ping_Result.close()
+			QMessageBox.information(self,"Warning","Please analyze your traceroute result first(step2)",QMessageBox.Ok)
+		else:
+			all_Day_Ping_Result.show()
+	
+	def stop_7_24_ping_flag(self,stop_flag):
+		global stop_ping_flag
+		if stop_flag=='Stop':
+			stop_ping_flag=0
 	
 	def ping_routers_exe(self,router,router_index):
-			#print(router)
-			#print(router_index)
-			ssh = paramiko.SSHClient()
-			ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-			ssh.connect(hostname="10.12.7.16", port=22, username=username, password=password)
-			chan=ssh.invoke_shell()
-			if router['vendor']=='Juniper':
-				ssh_router_cmd="ssh " + router['router_name']
-				print(ssh_router_cmd)
-				chan.send(ssh_router_cmd+'\n')
-				time.sleep(4)
-				res=chan.recv(65535).decode('utf8')
-				if '(yes/no)' in res:
-					chan.send('yes'+'\n')
-					time.sleep(2)
-				chan.send(password+'\n')
+		global username, password, stop_ping_flag
+		#print(router)
+		#print(router_index)
+		ssh = paramiko.SSHClient()
+		ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+		ssh.connect(hostname="10.12.7.16", port=22, username=username, password=password)
+		chan=ssh.invoke_shell()
+		if router['vendor']=='Juniper':
+			ssh_router_cmd="ssh " + router['router_name']
+			print(ssh_router_cmd)
+			chan.send(ssh_router_cmd+'\n')
+			time.sleep(4)
+			res=chan.recv(65535).decode('utf8')
+			if '(yes/no)' in res:
+				chan.send('yes'+'\n')
 				time.sleep(2)
-				res=chan.recv(65535)
-				cmd1="show system uptime | match current"
-				cmd2="ping " + router['next_hop_ip'] +' count 5 rapid wait 1'
-			else:
-				telnet_router_cmd="telnet " + router['router_name']
-				print(telnet_router_cmd)
-				chan.send(telnet_router_cmd+'\n')
+			chan.send(password+'\n')
+			time.sleep(2)
+			res=chan.recv(65535)
+			cmd1="show system uptime | match current"
+			cmd2="ping " + router['next_hop_ip'] +' count 5 rapid wait 1'
+		else:
+			telnet_router_cmd="telnet " + router['router_name']
+			print(telnet_router_cmd)
+			chan.send(telnet_router_cmd+'\n')
+			time.sleep(2)
+			res=chan.recv(65535).decode('utf8')
+			if '(yes/no)' in res:
+				chan.send('yes'+'\n')
 				time.sleep(2)
-				res=chan.recv(65535).decode('utf8')
-				if '(yes/no)' in res:
-					chan.send('yes'+'\n')
-					time.sleep(2)
-				chan.send(username+'\n')
-				time.sleep(2)
-				chan.send(password+'\n')
-				time.sleep(2)
-				res=chan.recv(65535)
-				cmd1="show clock"
-				cmd2="ping " + router['next_hop_ip']
+			chan.send(username+'\n')
+			time.sleep(2)
+			chan.send(password+'\n')
+			time.sleep(2)
+			res=chan.recv(65535)
+			cmd1="show clock"
+			cmd2="ping " + router['next_hop_ip']
 
-			result = ''
+		result = ''
+		stop_ping_flag=1
+		while stop_ping_flag:
+			chan.send(cmd1+'\n')
+			time.sleep(1)
+			chan.send(cmd2+'\n')
+			time.sleep(2)
 
-			while True:
-				chan.send(cmd1+'\n')
-				time.sleep(1)
-				chan.send(cmd2+'\n')
-				time.sleep(2)
+			res = chan.recv(65535).decode('utf8')
+			if  '100 percent' not in res and '5 packets received' not in res:
+				res1=res
+				print(res1)
+				time.sleep(11)
+				res = res1+chan.recv(65535).decode('utf8')
+				#print(res)
+			result = res
+			if result:
+				ping_result=result.strip('\n')
+				#print(ping_result)
+				self.send_ping_result_signal.emit(ping_result,router_index)
 
-				res = chan.recv(65535).decode('utf8')
-				if  '100 percent' not in res and '5 packets received' not in res:
-					res1=res
-					print(res1)
-					time.sleep(11)
-					res = res1+chan.recv(65535).decode('utf8')
-					#print(res)
-				result = res
-				if result:
-					ping_result=result.strip('\n')
-					#print(ping_result)
-					self.send_ping_result_signal.emit(ping_result,router_index)
+			#if res.endswith('> '):
+			#	break
+			#	ssh.close()
 
-				#if res.endswith('> '):
-				#	break
-				#	ssh.close()
-
-				#self.label_status.setText('Status: In Progress...')
+			#self.label_status.setText('Status: In Progress...')
 
 
 """****************************************************************************************************"""
@@ -938,8 +970,8 @@ class Input_alarms(QMainWindow, Ui_Dialog_input_alarms):
 """****************************************************************************************************"""
 
 class All_Day_Ping_Result(QMainWindow, Ui_all_day_ping_result_popup):
-
-	#alarms_inputed_signal = pyqtSignal(str)
+	global router_list
+	stop_7_24_ping_signal = pyqtSignal(str)
 
 	def __init__(self, parent=None):    
 		super(All_Day_Ping_Result, self).__init__(parent)
@@ -947,44 +979,82 @@ class All_Day_Ping_Result(QMainWindow, Ui_all_day_ping_result_popup):
 
 		#self.pushButton_cancel.clicked.connect(self.close)
 		#self.pushButton_ok.clicked.connect(self.alarms_inputed)
+		self.pushButton_copy_package_loss_log.clicked.connect(self.copy_package_loss_log)
+		self.pushButton_copy_result_log.clicked.connect(self.copy_result_log)
+		self.pushButton_stop_ping.clicked.connect(self.stop_7_24_ping_signal_send)
 		
 	def receive_ping_result(self,str_received_ping_result,router_index):
+
+		#self.label_status.setText('Status: In Progress...')
 
 		if '100 percent' not in str_received_ping_result and '5 packets received' not in str_received_ping_result:
 			#print(str_received_ping_result)
 			package_loss_log_old=self.textEdit_package_loss_log.toPlainText()
 			self.textEdit_package_loss_log.setPlainText(package_loss_log_old+"\n***************************************\n"+str_received_ping_result)
-			
+		
 		if router_index==0:
+			self.label_route1.setText('Router1: '+router_list[0]['router_name'])
 			result_log_old_1=self.textEdit_ping_result_1.toPlainText()
 			self.textEdit_ping_result_1.setPlainText(result_log_old_1+"\n***************************************\n"+str_received_ping_result)
 		elif router_index==1:
+			self.label_route2.setText('Router2: '+router_list[1]['router_name'])
 			result_log_old_2=self.textEdit_ping_result_2.toPlainText()
 			self.textEdit_ping_result_2.setPlainText(result_log_old_2+"\n***************************************\n"+str_received_ping_result)
 		elif router_index==2:
+			self.label_route3.setText('Router3: '+router_list[2]['router_name'])
 			result_log_old_3=self.textEdit_ping_result_3.toPlainText()
 			self.textEdit_ping_result_3.setPlainText(result_log_old_3+"\n***************************************\n"+str_received_ping_result)
 		elif router_index==3:
+			self.label_route4.setText('Router4: '+router_list[3]['router_name'])
 			result_log_old_4=self.textEdit_ping_result_4.toPlainText()
 			self.textEdit_ping_result_4.setPlainText(result_log_old_4+"\n***************************************\n"+str_received_ping_result)
 		elif router_index==4:
+			self.label_route5.setText('Router5: '+router_list[4]['router_name'])
 			result_log_old_5=self.textEdit_ping_result_5.toPlainText()
 			self.textEdit_ping_result_5.setPlainText(result_log_old_5+"\n***************************************\n"+str_received_ping_result)
 		elif router_index==5:
+			self.label_route6.setText('Router6: '+router_list[5]['router_name'])
 			result_log_old_6=self.textEdit_ping_result_6.toPlainText()
 			self.textEdit_ping_result_6.setPlainText(result_log_old_6+"\n***************************************\n"+str_received_ping_result)
 		elif router_index==6:
+			self.label_route7.setText('Router7: '+router_list[6]['router_name'])
 			result_log_old_7=self.textEdit_ping_result_7.toPlainText()
 			self.textEdit_ping_result_7.setPlainText(result_log_old_7+"\n***************************************\n"+str_received_ping_result)
 		elif router_index==7:
+			self.label_route8.setText('Router8: '+router_list[7]['router_name'])
 			result_log_old_8=self.textEdit_ping_result_8.toPlainText()
 			self.textEdit_ping_result_8.setPlainText(result_log_old_8+"\n***************************************\n"+str_received_ping_result)
 		else:
 			print('router_index=')
 			print(router_index)
+			self.label_route9.setText('Router9: '+router_list[8][router_name])
 			result_log_old_9=self.textEdit_ping_result_9.toPlainText()
 			self.textEdit_ping_result_9.setPlainText(result_log_old_9+"\n***************************************\n"+str_received_ping_result)
 
+
+	def copy_package_loss_log(self):
+		copy_package_loss_log=self.textEdit_package_loss_log.toPlainText()
+		pyperclip.copy(copy_package_loss_log)
+		
+		
+	def copy_result_log(self):
+		
+		copy_result_log1=self.label_route1.text()+ '\n\n'+ self.textEdit_ping_result_1.toPlainText() 
+		copy_result_log2=self.label_route2.text()+ '\n\n'+ self.textEdit_ping_result_2.toPlainText() 
+		copy_result_log3=self.label_route3.text()+ '\n\n'+ self.textEdit_ping_result_3.toPlainText() 
+		copy_result_log4=self.label_route4.text()+ '\n\n'+ self.textEdit_ping_result_4.toPlainText()
+		copy_result_log5=self.label_route5.text()+ '\n\n'+ self.textEdit_ping_result_5.toPlainText() 
+		copy_result_log6=self.label_route6.text()+ '\n\n'+ self.textEdit_ping_result_6.toPlainText()
+		copy_result_log7=self.label_route7.text()+ '\n\n'+ self.textEdit_ping_result_7.toPlainText() 
+		copy_result_log8=self.label_route8.text()+ '\n\n'+ self.textEdit_ping_result_8.toPlainText()
+		copy_result_log9=self.label_route9.text()+ '\n\n'+ self.textEdit_ping_result_9.toPlainText()
+		
+		copy_result_log=copy_result_log1+'\n\n\n\n'+copy_result_log2+'\n\n\n\n'+copy_result_log3+'\n\n\n\n'+copy_result_log4+'\n\n\n\n'+copy_result_log5+'\n\n\n\n'+copy_result_log6+'\n\n\n\n'+copy_result_log7+'\n\n\n\n'+copy_result_log8+'\n\n\n\n'+copy_result_log9
+		pyperclip.copy(copy_result_log)
+		
+	def stop_7_24_ping_signal_send(self):
+		self.stop_7_24_ping_signal.emit("Stop")
+		self.label_7_24_ping_status.setText('Status: Stoped')
 
 """****************************************************************************************************"""
 """***************************                  5. Run               **********************************"""
@@ -995,7 +1065,8 @@ if __name__=="__main__":
 	myWin.show()  
 	mylogin = My_login()  
 	mylogin.show()
-	all_Day_Ping_Result=All_Day_Ping_Result() 
+	all_Day_Ping_Result=All_Day_Ping_Result()
+	all_Day_Ping_Result.stop_7_24_ping_signal.connect(myWin.stop_7_24_ping_flag)
 	
 	myWin.account_result_signal.connect(mylogin.close_login_window)
 	myWin.send_ping_result_signal.connect(all_Day_Ping_Result.receive_ping_result)
