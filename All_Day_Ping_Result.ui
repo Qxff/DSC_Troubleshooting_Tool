@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>All Day Ping Result</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="donkey.qrc">
+    <normaloff>:/dsc/dsc.ico</normaloff>:/dsc/dsc.ico</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="Line" name="label_none">
     <property name="geometry">
@@ -71,10 +75,14 @@
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">color: rgb(255, 0, 0);</string>
+      <string notr="true">color: rgb(255, 0, 0);
+background-color: rgb(255, 255, 127);</string>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:9pt; font-weight:600; color:#00aa00;&quot;&gt;Status: Running&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; color:#00aa00;&quot;&gt;Status: Running&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
      </property>
     </widget>
     <widget class="QPushButton" name="pushButton_copy_result_log">
@@ -206,7 +214,7 @@
      <enum>Qt::Vertical</enum>
     </property>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>360</x>
@@ -370,7 +378,7 @@
     <property name="geometry">
      <rect>
       <x>360</x>
-      <y>20</y>
+      <y>30</y>
       <width>239</width>
       <height>16</height>
      </rect>
@@ -383,7 +391,7 @@
     <property name="geometry">
      <rect>
       <x>120</x>
-      <y>20</y>
+      <y>30</y>
       <width>108</width>
       <height>16</height>
      </rect>
@@ -404,26 +412,19 @@
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:9pt; font-weight:600; color:#ff0000;&quot;&gt;Package Loss log:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
+   <zorder>textEdit_package_loss_log</zorder>
+   <zorder>line</zorder>
+   <zorder>label</zorder>
+   <zorder>label_2</zorder>
    <zorder>layoutWidget</zorder>
-   <zorder>layoutWidget</zorder>
-   <zorder>label_route1</zorder>
-   <zorder>label_route2</zorder>
-   <zorder>label_route3</zorder>
-   <zorder>label_route6</zorder>
-   <zorder>label_route4</zorder>
-   <zorder>label_route5</zorder>
-   <zorder>label_route8</zorder>
-   <zorder>label_route7</zorder>
-   <zorder>label_route9</zorder>
    <zorder>label_none</zorder>
-   <zorder>pushButton_copy_result_log</zorder>
-   <zorder>pushButton_stop_ping</zorder>
-   <zorder>pushButton_copy_package_loss_log</zorder>
    <zorder>groupBox</zorder>
-   <zorder>label_7_24_ping_status</zorder>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
- <resources/>
+ <resources>
+  <include location="donkey.qrc"/>
+  <include location="donkey_for_input_alarms_window.qrc"/>
+ </resources>
  <connections/>
 </ui>

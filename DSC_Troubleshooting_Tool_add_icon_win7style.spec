@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['DSC_Troubleshooting_Tool.py'],
-             pathex=['C:\\Users\\g800472\\Desktop\\Python\\DSS_tools'],
+             pathex=['C:\\Users\\g800472\\Desktop\\Python\\DSS_tools\\DSC_Troubleshooting_Tool'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -27,4 +27,4 @@ exe = EXE(pyz,
           strip=False,
           upx=True,
           runtime_tmpdir=None,
-          console=False,icon='C:\\Users\g800472\Desktop\Python\DSS_tools\dsc.ico')
+          console=False,icon='C:\\Users\g800472\Desktop\Python\DSS_tools\DSC_Troubleshooting_Tool\dsc.ico')

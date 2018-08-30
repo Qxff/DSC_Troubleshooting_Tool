@@ -66,7 +66,8 @@ import pyperclip
 class MyMainWindow(QMainWindow, Ui_MainWindow):
 	
 	account_result_signal = pyqtSignal(str)
-	send_ping_result_signal= pyqtSignal(str,int)
+	send_ping_result_signal = pyqtSignal(str,int)
+	start_7_24_ping_signal = pyqtSignal(int)
 	
 	def __init__(self, parent=None):    
 		super(MyMainWindow, self).__init__(parent)
@@ -107,6 +108,8 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
 		self.pushButton_start_7_24_ping.clicked.connect(self.start_7_24_ping)
 		self.pushButton_analyze_traceroute_result.clicked.connect(self.analyse_traceroute_result)
 		
+		self.textEdit_traceroute_result.textChanged.connect(self.reset_trace_analysis_result)
+		
 		#troubleshooting tool
 		self.pushButton_input_alarms.clicked.connect(self.input_alarms)
 		self.comboBox_alarm_list.currentIndexChanged.connect(self.generate_alarms)
@@ -136,14 +139,16 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
 		self.comboBox_customer_name.clear ()
 		
 		customer_list=[]
-		for row in ccb_info:
-			if customer_inputted.lower() in row["Operator"].lower():
-				if row["Operator"] not in customer_list:
-					customer_list.append(row["Operator"])
-
-		print(customer_list)
-		self.comboBox_customer_name.addItems(customer_list)
-		
+		try:
+			for row in ccb_info:
+				if customer_inputted.lower() in row["Operator"].lower():
+					if row["Operator"] not in customer_list:
+						customer_list.append(row["Operator"])
+	
+			print(customer_list)
+			self.comboBox_customer_name.addItems(customer_list)
+		except:
+			pass
 		
 	def update_customer_peer(self):
 		global ccb_info
@@ -151,13 +156,17 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
 		self.comboBox_customer_peername.clear ()
 		
 		peer_list=[]
-		for row in ccb_info:
-			if customer_name.lower() == row["Operator"].lower():
-				if row["Hostname"] not in peer_list:
-					peer_list.append(row["Hostname"])
+		try:
+			for row in ccb_info:
+				if customer_name.lower() == row["Operator"].lower():
+					if row["Hostname"] not in peer_list:
+						peer_list.append(row["Hostname"])
 		
-		print(peer_list)
-		self.comboBox_customer_peername.addItems(peer_list)
+		
+			print(peer_list)
+			self.comboBox_customer_peername.addItems(peer_list)
+		except:
+			pass
 
 	def test_account(self,username_signal,password_signal):
 		global username, password,ccb_info
@@ -790,10 +799,9 @@ where ni.item='DSC_Peer' group by ni.value;"""
 
 	def analyse_traceroute_result(self):
 		global username, password,router_list
-		username="g800472"
-		password="Selenium666$"
 
 		try:
+			self.textEdit_traceroute_analysis_result.clear()
 			#print(self.textEdit_traceroute_result.toPlainText())
 			router_list=get_router_list_from_traceroute(self.textEdit_traceroute_result.toPlainText(),username,password)
 			print(router_list)
@@ -808,8 +816,7 @@ where ni.item='DSC_Peer' group by ni.value;"""
 
 	def start_7_24_ping(self):
 		global username, password,router_list
-		username="g800472"
-		password="Selenium666$"
+
 		"""try:
 			print(self.textEdit_traceroute_result.toPlainText())
 			#information_start="You are going to start the 7*24 ping hop-by-hop per your traceroute."+"\n" +"Click OK to start(May take few seconds)."
@@ -838,11 +845,16 @@ where ni.item='DSC_Peer' group by ni.value;"""
 			QMessageBox.information(self,"Warning","Please analyze your traceroute result first(step2)",QMessageBox.Ok)
 		else:
 			all_Day_Ping_Result.show()
+			self.start_7_24_ping_signal.emit(1)
 	
 	def stop_7_24_ping_flag(self,stop_flag):
 		global stop_ping_flag
 		if stop_flag=='Stop':
 			stop_ping_flag=0
+			
+	
+	def reset_trace_analysis_result(self):
+		self.textEdit_traceroute_analysis_result.clear()
 	
 	def ping_routers_exe(self,router,router_index):
 		global username, password, stop_ping_flag
@@ -892,13 +904,18 @@ where ni.item='DSC_Peer' group by ni.value;"""
 			time.sleep(2)
 
 			res = chan.recv(65535).decode('utf8')
-			if  '100 percent' not in res and '5 packets received' not in res:
-				res1=res
-				print(res1)
-				time.sleep(11)
-				res = res1+chan.recv(65535).decode('utf8')
-				#print(res)
+			wait_time=11
+			while wait_time:
+				if  '100 percent' not in res and '5 packets received' not in res:
+					res1=res
+					print(res1)
+					time.sleep(1)
+					res = res1+chan.recv(65535).decode('utf8')
+					wait_time=wait_time-1
+				else:
+					break
 			result = res
+			
 			if result:
 				ping_result=result.strip('\n')
 				#print(ping_result)
@@ -926,8 +943,7 @@ class My_login(QMainWindow, Ui_Dialog_login):
 		self.pushButton_login.clicked.connect(self.send_login_signal)
 		
 	def send_login_signal(self):
-		#self.lineEdit_gib.setText('g800472')
-		#self.lineEdit_password.setText('Python666$')
+
 		self.login_signal.emit(self.lineEdit_gib.text(),self.lineEdit_password.text())
 		self.lineEdit_password.clear()
 		self.lineEdit_gib.clear()
@@ -1056,6 +1072,34 @@ class All_Day_Ping_Result(QMainWindow, Ui_all_day_ping_result_popup):
 		self.stop_7_24_ping_signal.emit("Stop")
 		self.label_7_24_ping_status.setText('Status: Stoped')
 
+	def closeEvent(self, event):
+		self.stop_7_24_ping_signal_send()
+		event.accept()
+		
+	def reset_all_day_ping_window(self,flag):
+		if flag==1:
+			self.textEdit_ping_result_1.clear()
+			self.textEdit_ping_result_2.clear()
+			self.textEdit_ping_result_3.clear()
+			self.textEdit_ping_result_4.clear()
+			self.textEdit_ping_result_5.clear()
+			self.textEdit_ping_result_6.clear()
+			self.textEdit_ping_result_7.clear()
+			self.textEdit_ping_result_8.clear()
+			self.textEdit_ping_result_9.clear()
+			self.textEdit_package_loss_log.clear()
+			self.label_7_24_ping_status.setText('Status: Running')
+			self.label_route1.setText('Router1:')
+			self.label_route2.setText('Router2:')
+			self.label_route3.setText('Router3:')
+			self.label_route4.setText('Router4:')
+			self.label_route5.setText('Router5:')
+			self.label_route6.setText('Router6:')
+			self.label_route7.setText('Router7:')
+			self.label_route8.setText('Router8:')
+			self.label_route9.setText('Router9:')
+
+
 """****************************************************************************************************"""
 """***************************                  5. Run               **********************************"""
 """****************************************************************************************************"""
@@ -1070,6 +1114,7 @@ if __name__=="__main__":
 	
 	myWin.account_result_signal.connect(mylogin.close_login_window)
 	myWin.send_ping_result_signal.connect(all_Day_Ping_Result.receive_ping_result)
+	myWin.start_7_24_ping_signal.connect(all_Day_Ping_Result.reset_all_day_ping_window)
 	mylogin.login_signal.connect(myWin.test_account)
 
 	input_alarms=Input_alarms()
