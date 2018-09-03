@@ -354,7 +354,9 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
 		alarms_dic={}
 		#alarms_list=alarms_content.split('\n')
 		#alarms_list=alarms_content.splitlines()
+		
 		alarms_list=re.split(r'\n',alarms_content) 
+		
 		#print(alarms_list)
 		for item in alarms_list:
 			#if item=="  " or item.strip()==' ':
@@ -1012,40 +1014,49 @@ class All_Day_Ping_Result(QMainWindow, Ui_all_day_ping_result_popup):
 			self.label_route1.setText('Router1: '+router_list[0]['router_name'])
 			result_log_old_1=self.textEdit_ping_result_1.toPlainText()
 			self.textEdit_ping_result_1.setPlainText(result_log_old_1+"\n***************************************\n"+str_received_ping_result)
+			self.textEdit_ping_result_1.moveCursor(QtGui.QTextCursor.End) 
 		elif router_index==1:
 			self.label_route2.setText('Router2: '+router_list[1]['router_name'])
 			result_log_old_2=self.textEdit_ping_result_2.toPlainText()
 			self.textEdit_ping_result_2.setPlainText(result_log_old_2+"\n***************************************\n"+str_received_ping_result)
+			self.textEdit_ping_result_2.moveCursor(QtGui.QTextCursor.End) 
 		elif router_index==2:
 			self.label_route3.setText('Router3: '+router_list[2]['router_name'])
 			result_log_old_3=self.textEdit_ping_result_3.toPlainText()
 			self.textEdit_ping_result_3.setPlainText(result_log_old_3+"\n***************************************\n"+str_received_ping_result)
+			self.textEdit_ping_result_3.moveCursor(QtGui.QTextCursor.End) 
 		elif router_index==3:
 			self.label_route4.setText('Router4: '+router_list[3]['router_name'])
 			result_log_old_4=self.textEdit_ping_result_4.toPlainText()
 			self.textEdit_ping_result_4.setPlainText(result_log_old_4+"\n***************************************\n"+str_received_ping_result)
+			self.textEdit_ping_result_4.moveCursor(QtGui.QTextCursor.End) 
 		elif router_index==4:
 			self.label_route5.setText('Router5: '+router_list[4]['router_name'])
 			result_log_old_5=self.textEdit_ping_result_5.toPlainText()
 			self.textEdit_ping_result_5.setPlainText(result_log_old_5+"\n***************************************\n"+str_received_ping_result)
+			self.textEdit_ping_result_5.moveCursor(QtGui.QTextCursor.End) 
 		elif router_index==5:
 			self.label_route6.setText('Router6: '+router_list[5]['router_name'])
 			result_log_old_6=self.textEdit_ping_result_6.toPlainText()
 			self.textEdit_ping_result_6.setPlainText(result_log_old_6+"\n***************************************\n"+str_received_ping_result)
+			self.textEdit_ping_result_6.moveCursor(QtGui.QTextCursor.End) 
 		elif router_index==6:
 			self.label_route7.setText('Router7: '+router_list[6]['router_name'])
 			result_log_old_7=self.textEdit_ping_result_7.toPlainText()
 			self.textEdit_ping_result_7.setPlainText(result_log_old_7+"\n***************************************\n"+str_received_ping_result)
+			self.textEdit_ping_result_7.moveCursor(QtGui.QTextCursor.End) 
 		elif router_index==7:
 			self.label_route8.setText('Router8: '+router_list[7]['router_name'])
 			result_log_old_8=self.textEdit_ping_result_8.toPlainText()
 			self.textEdit_ping_result_8.setPlainText(result_log_old_8+"\n***************************************\n"+str_received_ping_result)
+			self.textEdit_ping_result_8.moveCursor(QtGui.QTextCursor.End) 
 		else:
 			print('router_index=')
 			print(router_index)
 			self.label_route9.setText('Router9: '+router_list[8][router_name])
 			result_log_old_9=self.textEdit_ping_result_9.toPlainText()
 			self.textEdit_ping_result_9.setPlainText(result_log_old_9+"\n***************************************\n"+str_received_ping_result)
+			self.textEdit_ping_result_9.moveCursor(QtGui.QTextCursor.End) 
 
 
 	def copy_package_loss_log(self):

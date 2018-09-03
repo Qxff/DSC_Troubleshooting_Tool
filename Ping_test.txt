@@ -1,0 +1,86 @@
+[{'router_name': 'r002-hnk2-n gn.ncc.syniverse.com', 'vendor': 'Juniper', 'type': 'NO BG', 'next_hop_ip': '192.168.71.206'}, {'router_name': 'r002-sng2-ngn.ncc.syniverse.com', 'vendor': 'Juniper', 'typ
+e': 'NO BG', 'next_hop_ip': '192.168.71.70'}, {'router_name': 'r003-bng-ngn.ncc.syniverse.com', 'vendor': 'Juniper', 'type': 'NO BG', 'next_hop_ip': '172.27.4.213'}, {'router_name': 'airtel-bng-india.
+ncc.syniverse.com', 'vendor': 'Cisco', 'type': 'BG', 'next_hop_ip': '131.166.150.157'}]
+
+
+ 1  * * *
+ 2  173.209.213.85 (173.209.213.85)  3.916 ms  3.879 ms  3.899 ms
+ 3  192.168.71.206 (192.168.71.206)  35.546 ms  35.509 ms  36.432 ms
+ 4  * 192.168.71.229 (192.168.71.229)  74.583 ms  74.711 ms
+ 5  192.168.71.70 (192.168.71.70)  74.786 ms  75.796 ms  75.639 ms
+ 6  172.27.4.213 (172.27.4.213)  75.686 ms  73.319 ms  73.354 ms
+ 7  131.166.150.157 (131.166.150.157)  73.967 ms  73.725 ms  73.803 ms
+ 8  10.91.25.209 (10.91.25.209)  73.642 ms  73.498 ms  73.590 ms
+ 9  * * *
+10  * * *
+11  * * *
+12  * * *
+13  * * *
+14  * * *
+15  * * *
+16  * * *
+17  * * *
+18  * * *
+19  * * *
+20  * * *
+21  * * *
+22  * * *
+23  * * *
+24  * * *
+25  * * *
+26  * * *
+27  * * *
+28  * * *
+29  * * *
+30  * * *
+
+
+[g800472@lorax ~]$ ssh r002-sng2-ngn.ncc.syniverse.com
+The authenticity of host 'r002-sng2-ngn.ncc.syniverse.com (172.31.191.179)' can't be established.
+RSA key fingerprint is 2e:67:1f:bc:56:4d:78:cd:d4:14:57:72:28:39:ad:ae.
+Are you sure you want to continue connecting (yes/no)? yes
+
+>>> dir(QTextEdit)
+['AdjustIgnored', 'AdjustToContents', 'AdjustToContentsOnFirstShow', 'AutoAll', 'AutoBulletList', 'AutoFormatting', 'AutoFormattingFlag', 'AutoNone', 'Box', 'DrawChildren', 'DrawWindowBackground', 'Ex
+traSelection', 'FixedColumnWidth', 'FixedPixelWidth', 'HLine', 'IgnoreMask', 'LineWrapMode', 'NoFrame', 'NoWrap', 'PaintDeviceMetric', 'Panel', 'PdmDepth', 'PdmDevicePixelRatio', 'PdmDevicePixelRatioS
+caled', 'PdmDpiX', 'PdmDpiY', 'PdmHeight', 'PdmHeightMM', 'PdmNumColors', 'PdmPhysicalDpiX', 'PdmPhysicalDpiY', 'PdmWidth', 'PdmWidthMM', 'Plain', 'Raised', 'RenderFlag', 'RenderFlags', 'Shadow', 'Sha
+dow_Mask', 'Shape', 'Shape_Mask', 'SizeAdjustPolicy', 'StyleMask', 'StyledPanel', 'Sunken', 'VLine', 'WidgetWidth', 'WinPanel', '__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__',
+'__format__', '__ge__', '__getattr__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__',
+'__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', 'acceptDrops', 'acceptRichText', 'accessibleDescription', 'accessibleName', 'actionEvent', 'actions', 'activateWi
+ndow', 'addAction', 'addActions', 'addScrollBarWidget', 'adjustSize', 'alignment', 'anchorAt', 'append', 'autoFillBackground', 'autoFormatting', 'backgroundRole', 'baseSize', 'blockSignals', 'canInser
+tFromMimeData', 'canPaste', 'changeEvent', 'childAt', 'childEvent', 'children', 'childrenRect', 'childrenRegion', 'clear', 'clearFocus', 'clearMask', 'close', 'closeEvent', 'colorCount', 'connectNotif
+y', 'contentsMargins', 'contentsRect', 'contextMenuEvent', 'contextMenuPolicy', 'copy', 'copyAvailable', 'cornerWidget', 'create', 'createMimeDataFromSelection', 'createStandardContextMenu', 'createWi
+ndowContainer', 'currentCharFormat', 'currentCharFormatChanged', 'currentFont', 'cursor', 'cursorForPosition', 'cursorPositionChanged', 'cursorRect', 'cursorWidth', 'customContextMenuRequested', 'cust
+omEvent', 'cut', 'deleteLater', 'depth', 'destroy', 'destroyed', 'devType', 'devicePixelRatio', 'devicePixelRatioF', 'devicePixelRatioFScale', 'disconnect', 'disconnectNotify', 'document', 'documentTi
+tle', 'dragEnterEvent', 'dragLeaveEvent', 'dragMoveEvent', 'drawFrame', 'dropEvent', 'dumpObjectInfo', 'dumpObjectTree', 'dynamicPropertyNames', 'effectiveWinId', 'ensureCursorVisible', 'ensurePolishe
+d', 'enterEvent', 'event', 'eventFilter', 'extraSelections', 'find', 'findChild', 'findChildren', 'focusInEvent', 'focusNextChild', 'focusNextPrevChild', 'focusOutEvent', 'focusPolicy', 'focusPrevious
+Child', 'focusProxy', 'focusWidget', 'font', 'fontFamily', 'fontInfo', 'fontItalic', 'fontMetrics', 'fontPointSize', 'fontUnderline', 'fontWeight', 'foregroundRole', 'frameGeometry', 'frameRect', 'fra
+meShadow', 'frameShape', 'frameSize', 'frameStyle', 'frameWidth', 'geometry', 'getContentsMargins', 'grab', 'grabGesture', 'grabKeyboard', 'grabMouse', 'grabShortcut', 'graphicsEffect', 'graphicsProxy
+Widget', 'hasFocus', 'hasHeightForWidth', 'hasMouseTracking', 'hasTabletTracking', 'height', 'heightForWidth', 'heightMM', 'hide', 'hideEvent', 'horizontalScrollBar', 'horizontalScrollBarPolicy', 'inh
+erits', 'initPainter', 'initStyleOption', 'inputMethodEvent', 'inputMethodHints', 'inputMethodQuery', 'insertAction', 'insertActions', 'insertFromMimeData', 'insertHtml', 'insertPlainText', 'installEv
+entFilter', 'isActiveWindow', 'isAncestorOf', 'isEnabled', 'isEnabledTo', 'isFullScreen', 'isHidden', 'isLeftToRight', 'isMaximized', 'isMinimized', 'isModal', 'isReadOnly', 'isRightToLeft', 'isSignal
+Connected', 'isUndoRedoEnabled', 'isVisible', 'isVisibleTo', 'isWidgetType', 'isWindow', 'isWindowModified', 'isWindowType', 'keyPressEvent', 'keyReleaseEvent', 'keyboardGrabber', 'killTimer', 'layout
+', 'layoutDirection', 'leaveEvent', 'lineWidth', 'lineWrapColumnOrWidth', 'lineWrapMode', 'loadResource', 'locale', 'logicalDpiX', 'logicalDpiY', 'lower', 'mapFrom', 'mapFromGlobal', 'mapFromParent',
+'mapTo', 'mapToGlobal', 'mapToParent', 'mask', 'maximumHeight', 'maximumSize', 'maximumViewportSize', 'maximumWidth', 'mergeCurrentCharFormat', 'metaObject', 'metric', 'midLineWidth', 'minimumHeight',
+ 'minimumSize', 'minimumSizeHint', 'minimumWidth', 'mouseDoubleClickEvent', 'mouseGrabber', 'mouseMoveEvent', 'mousePressEvent', 'mouseReleaseEvent', 'move', 'moveCursor', 'moveEvent', 'moveToThread',
+ 'nativeEvent', 'nativeParentWidget', 'nextInFocusChain', 'normalGeometry', 'objectName', 'objectNameChanged', 'overrideWindowFlags', 'overrideWindowState', 'overwriteMode', 'paintEngine', 'paintEvent
+', 'paintingActive', 'palette', 'parent', 'parentWidget', 'paste', 'physicalDpiX', 'physicalDpiY', 'placeholderText', 'pos', 'previousInFocusChain', 'print', 'print_', 'property', 'pyqtConfigure', 'ra
+ise_', 'receivers', 'rect', 'redo', 'redoAvailable', 'releaseKeyboard', 'releaseMouse', 'releaseShortcut', 'removeAction', 'removeEventFilter', 'render', 'repaint', 'resize', 'resizeEvent', 'restoreGe
+ometry', 'saveGeometry', 'scroll', 'scrollBarWidgets', 'scrollContentsBy', 'scrollToAnchor', 'selectAll', 'selectionChanged', 'sender', 'senderSignalIndex', 'setAcceptDrops', 'setAcceptRichText', 'set
+AccessibleDescription', 'setAccessibleName', 'setAlignment', 'setAttribute', 'setAutoFillBackground', 'setAutoFormatting', 'setBackgroundRole', 'setBaseSize', 'setContentsMargins', 'setContextMenuPoli
+cy', 'setCornerWidget', 'setCurrentCharFormat', 'setCurrentFont', 'setCursor', 'setCursorWidth', 'setDisabled', 'setDocument', 'setDocumentTitle', 'setEnabled', 'setExtraSelections', 'setFixedHeight',
+ 'setFixedSize', 'setFixedWidth', 'setFocus', 'setFocusPolicy', 'setFocusProxy', 'setFont', 'setFontFamily', 'setFontItalic', 'setFontPointSize', 'setFontUnderline', 'setFontWeight', 'setForegroundRol
+e', 'setFrameRect', 'setFrameShadow', 'setFrameShape', 'setFrameStyle', 'setGeometry', 'setGraphicsEffect', 'setHidden', 'setHorizontalScrollBar', 'setHorizontalScrollBarPolicy', 'setHtml', 'setInputM
+ethodHints', 'setLayout', 'setLayoutDirection', 'setLineWidth', 'setLineWrapColumnOrWidth', 'setLineWrapMode', 'setLocale', 'setMask', 'setMaximumHeight', 'setMaximumSize', 'setMaximumWidth', 'setMidL
+ineWidth', 'setMinimumHeight', 'setMinimumSize', 'setMinimumWidth', 'setMouseTracking', 'setObjectName', 'setOverwriteMode', 'setPalette', 'setParent', 'setPlaceholderText', 'setPlainText', 'setProper
+ty', 'setReadOnly', 'setShortcutAutoRepeat', 'setShortcutEnabled', 'setSizeAdjustPolicy', 'setSizeIncrement', 'setSizePolicy', 'setStatusTip', 'setStyle', 'setStyleSheet', 'setTabChangesFocus', 'setTa
+bOrder', 'setTabStopDistance', 'setTabStopWidth', 'setTabletTracking', 'setText', 'setTextBackgroundColor', 'setTextColor', 'setTextCursor', 'setTextInteractionFlags', 'setToolTip', 'setToolTipDuratio
+n', 'setUndoRedoEnabled', 'setUpdatesEnabled', 'setVerticalScrollBar', 'setVerticalScrollBarPolicy', 'setViewport', 'setViewportMargins', 'setVisible', 'setWhatsThis', 'setWindowFilePath', 'setWindowF
+lag', 'setWindowFlags', 'setWindowIcon', 'setWindowIconText', 'setWindowModality', 'setWindowModified', 'setWindowOpacity', 'setWindowRole', 'setWindowState', 'setWindowTitle', 'setWordWrapMode', 'set
+upViewport', 'sharedPainter', 'show', 'showEvent', 'showFullScreen', 'showMaximized', 'showMinimized', 'showNormal', 'signalsBlocked', 'size', 'sizeAdjustPolicy', 'sizeHint', 'sizeIncrement', 'sizePol
+icy', 'stackUnder', 'startTimer', 'staticMetaObject', 'statusTip', 'style', 'styleSheet', 'tabChangesFocus', 'tabStopDistance', 'tabStopWidth', 'tabletEvent', 'testAttribute', 'textBackgroundColor', '
+textChanged', 'textColor', 'textCursor', 'textInteractionFlags', 'thread', 'timerEvent', 'toHtml', 'toPlainText', 'toolTip', 'toolTipDuration', 'tr', 'underMouse', 'undo', 'undoAvailable', 'ungrabGest
+ure', 'unsetCursor', 'unsetLayoutDirection', 'unsetLocale', 'update', 'updateGeometry', 'updateMicroFocus', 'updatesEnabled', 'verticalScrollBar', 'verticalScrollBarPolicy', 'viewport', 'viewportEvent
+', 'viewportMargins', 'viewportSizeHint', 'visibleRegion', 'whatsThis', 'wheelEvent', 'width', 'widthMM', 'winId', 'window', 'windowFilePath', 'windowFlags', 'windowHandle', 'windowIcon', 'windowIconC
+hanged', 'windowIconText', 'windowIconTextChanged', 'windowModality', 'windowOpacity', 'windowRole', 'windowState', 'windowTitle', 'windowTitleChanged', 'windowType', 'wordWrapMode', 'x', 'y', 'zoomIn
+', 'zoomOut']

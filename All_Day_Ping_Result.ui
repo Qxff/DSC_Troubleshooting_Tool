@@ -309,6 +309,12 @@ background-color: rgb(255, 255, 127);</string>
      </item>
      <item row="1" column="0">
       <widget class="QTextEdit" name="textEdit_ping_result_1">
+       <property name="verticalScrollBarPolicy">
+        <enum>Qt::ScrollBarAsNeeded</enum>
+       </property>
+       <property name="sizeAdjustPolicy">
+        <enum>QAbstractScrollArea::AdjustIgnored</enum>
+       </property>
        <property name="placeholderText">
         <string/>
        </property>
