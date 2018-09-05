@@ -1027,7 +1027,7 @@ class Ui_MainWindow(object):
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-style:normal; color:#0000ff;\">Step3: Push &quot;</span><span style=\" font-weight:600; font-style:normal; color:#0000ff;\">Start 7*24 Ping</span><span style=\" font-style:normal; color:#0000ff;\">&quot; button to start</span></p></body></html>"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "7*24 Ping"))
         self.label.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" font-weight:600; color:#005500;\">User</span></p></body></html>"))
-        self.label_16.setText(_translate("MainWindow", "<html><head/><body><p>Product of Syniverse Insight Tailor Team. Version: 2.0, 2018-08-30</p><p><br/></p></body></html>"))
+        self.label_16.setText(_translate("MainWindow", "<html><head/><body><p>Product of Syniverse Insight Tailor Team. Version: 2.1, 2018-09-04</p><p><br/></p></body></html>"))
         self.fileOpenAction.setText(_translate("MainWindow", "打开"))
         self.fileOpenAction.setToolTip(_translate("MainWindow", "打开"))
         self.fileOpenAction.setShortcut(_translate("MainWindow", "Alt+S"))

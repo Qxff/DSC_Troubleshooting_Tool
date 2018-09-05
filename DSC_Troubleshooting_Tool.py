@@ -906,17 +906,29 @@ where ni.item='DSC_Peer' group by ni.value;"""
 			time.sleep(2)
 
 			res = chan.recv(65535).decode('utf8')
-			wait_time=11
-			while wait_time:
+			wait_time=5
+			while wait_time>1:
+				#print(wait_time)
 				if  '100 percent' not in res and '5 packets received' not in res:
 					res1=res
-					print(res1)
+					#print(res1)
 					time.sleep(1)
-					res = res1+chan.recv(65535).decode('utf8')
+					print("receive date again--before")
+					chan.settimeout(2)
+					try:
+						res = res1+chan.recv(65535).decode('utf8')
+					except:
+						pass
+					print("receive date again--done")
 					wait_time=wait_time-1
+					print(wait_time)
+					print(res)
 				else:
+					print("result_pingable")
 					break
+					
 			result = res
+			#print(result)
 			
 			if result:
 				ping_result=result.strip('\n')
