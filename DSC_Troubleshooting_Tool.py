@@ -67,7 +67,7 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
 	
 	account_result_signal = pyqtSignal(str)
 	send_ping_result_signal = pyqtSignal(str,int)
-	start_7_24_ping_signal = pyqtSignal(int)
+	start_7_24_ping_signal = pyqtSignal(int,str)
 	
 	def __init__(self, parent=None):    
 		super(MyMainWindow, self).__init__(parent)
@@ -833,21 +833,25 @@ where ni.item='DSC_Peer' group by ni.value;"""
 		else:
 			#all_Day_Ping_Result.show()
 			#router1=router_list[3]['router_name']"""
-		try:
-			#all_Day_Ping_Result.show()
-			for router in router_list:
-				t= threading.Thread(target=self.ping_routers_exe,args=(router,router_list.index(router)))
-				print(router)
-				print(router_list.index(router))
-				t.start()
-			#ping_result=ssh_jump_server_juniper_cmd(router1,username,password,"ping 192.168.71.206 count 5 rapid wait 1","show system uptime | match current")
-			#print(ping_result)
-		except:
-			#all_Day_Ping_Result.close()
-			QMessageBox.information(self,"Warning","Please analyze your traceroute result first(step2)",QMessageBox.Ok)
+		
+		if self.textEdit_incident_description.toPlainText() =="":
+			QMessageBox.information(self,"Warning","Please input the INC description",QMessageBox.Ok)
 		else:
-			all_Day_Ping_Result.show()
-			self.start_7_24_ping_signal.emit(1)
+			try:
+				#all_Day_Ping_Result.show()
+				for router in router_list:
+					t= threading.Thread(target=self.ping_routers_exe,args=(router,router_list.index(router)))
+					print(router)
+					print(router_list.index(router))
+					t.start()
+				#ping_result=ssh_jump_server_juniper_cmd(router1,username,password,"ping 192.168.71.206 count 5 rapid wait 1","show system uptime | match current")
+				#print(ping_result)
+			except:
+				#all_Day_Ping_Result.close()
+				QMessageBox.information(self,"Warning","Please analyze your traceroute result first(step2)",QMessageBox.Ok)
+			else:
+				all_Day_Ping_Result.show()
+				self.start_7_24_ping_signal.emit(1,self.textEdit_incident_description.toPlainText())
 	
 	def stop_7_24_ping_flag(self,stop_flag):
 		global stop_ping_flag
@@ -1099,8 +1103,9 @@ class All_Day_Ping_Result(QMainWindow, Ui_all_day_ping_result_popup):
 		self.stop_7_24_ping_signal_send()
 		event.accept()
 		
-	def reset_all_day_ping_window(self,flag):
+	def reset_all_day_ping_window(self,flag,inc_description):
 		if flag==1:
+			self.textEdit_incident_description.setText(inc_description)
 			self.textEdit_ping_result_1.clear()
 			self.textEdit_ping_result_2.clear()
 			self.textEdit_ping_result_3.clear()
