@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="dsc_internal_cross_ping_diagram">
+    <file>dsc_internal_cross_ping_diagram.png</file>
+  </qresource>
+</RCC>

@@ -43,7 +43,7 @@ import sys,os
 import re
 import paramiko
 import copy
-import time
+import time,datetime
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -51,13 +51,24 @@ from PyQt5.QtWidgets import *
 from DSC_Troubleshooting_Tool_ui import *
 from DSC_Login_ui import *
 from Input_alarms_ui import *
-from ssh_ping_cmd import ssh_onetime_ping, ssh_jump_server_cmd,ssh_jump_server_juniper_cmd,ssh_jump_server_cisco_cmd
+from ssh_ping_cmd import ssh_onetime_ping, ssh_jump_server_cmd,ssh_jump_server_juniper_cmd,ssh_jump_server_cisco_cmd,ssh_nohup_cmd
 from SendEmail import sendemail,html_line_break
 from get_router_list_from_traceroute import *
 from All_Day_Ping_Result_ui import *
 import threading
 import pyperclip
-
+import tarfile
+import shutil
+import csv
+import matplotlib
+matplotlib.use('Qt5Agg')
+import matplotlib.pyplot as plt
+from matplotlib.dates import DateFormatter, drange
+from matplotlib.ticker import MultipleLocator, FormatStrFormatter
+from matplotlib import style
+import matplotlib.dates as mdates
+import matplotlib.ticker as mticker
+from matplotlib.ticker import FuncFormatter
 
 """****************************************************************************************************"""
 """***************************             1. Main Window            **********************************"""
@@ -68,6 +79,10 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
 	account_result_signal = pyqtSignal(str)
 	send_ping_result_signal = pyqtSignal(str,int)
 	start_7_24_ping_signal = pyqtSignal(int,str)
+	
+	update_textEdit_log_name_content_signal=pyqtSignal(str)
+	show_download_kpi_file_popup_signal=pyqtSignal(str)
+	show_figure_signal=pyqtSignal(str)
 	
 	def __init__(self, parent=None):    
 		super(MyMainWindow, self).__init__(parent)
@@ -125,6 +140,15 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
 		self.pushButton_show_route_customer.clicked.connect(self.ssh_exe_cmd_troubleshooting)
 		self.pushButton_sendemail.clicked.connect(self.send_email)
 		
+		
+		#DSC Internal Cross Ping
+		self.pushButton_list_package_loss_log.clicked.connect(self.internal_cross_ping_list_package_loss_log)
+		self.pushButton_list_all_log.clicked.connect(self.internal_cross_ping_list_all_log)
+		self.pushButton_show_log_content.clicked.connect(self.internal_cross_ping_show_log_content)
+		self.pushButton_start_internal_cross_ping.clicked.connect(self.start_internal_cross_ping)
+		self.pushButton_download_kpi_files.clicked.connect(self.download_DSC_internal_ping_kpi_files)
+		self.pushButton_generate_report.clicked.connect(self.generate_report)
+		
 		self.dlbloginip={"HK DSC":"10.162.28.187","SG DSC":"10.163.28.132","AMS DSC":"10.160.28.221","FRT DSC":"10.161.28.249","CHI DSC":"10.166.28.201","DAL DSC":"10.164.28.190"}
 		
 		global username, password,ccb_info
@@ -175,6 +199,10 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
 		
 		self.lineEdit_GID.setText(username)
 
+		nowTime=datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
+		self.dateTimeEdit_start_time.setDateTime(QDateTime.fromString(nowTime, 'yyyy-MM-dd hh:mm'))
+		self.dateTimeEdit_end_time.setDateTime(QDateTime.fromString(nowTime, 'yyyy-MM-dd hh:mm'))
+		
 		#print(username,password)
 		try:
 			ssh_onetime_ping("10.162.28.187",username,password,"netstat -an")
@@ -945,6 +973,451 @@ where ni.item='DSC_Peer' group by ni.value;"""
 
 			#self.label_status.setText('Status: In Progress...')
 
+#********************************************************************************************************
+#**************************    Function: DSC Internal Cross Ping     ************************************
+#********************************************************************************************************
+
+	def internal_cross_ping_list_package_loss_log(self):
+		global username, password
+		#cmd='pwd'
+		cmd='ls /data2/TMP/tsdss/DSC_Internal_Cross_Ping_Tool/internal_ping_logs | grep loss'
+		package_loss_log_list=ssh_onetime_ping('10.162.28.185',username,password,cmd)
+		#print(package_loss_log_list)
+		self.textEdit_log_name_content.setPlainText('')
+		for item in package_loss_log_list:
+			log_name_content_old=self.textEdit_log_name_content.toPlainText()
+
+			self.textEdit_log_name_content.setPlainText(log_name_content_old+item)
+			self.textEdit_log_name_content.moveCursor(QtGui.QTextCursor.End) 
+		
+	def internal_cross_ping_list_all_log(self):
+		global username, password
+		
+		cmd='ls /data2/TMP/tsdss/DSC_Internal_Cross_Ping_Tool/internal_ping_logs'
+		all_log_list=ssh_onetime_ping('10.162.28.185',username,password,cmd)
+		
+		self.textEdit_log_name_content.setPlainText('')
+		for item in all_log_list:
+			log_name_content_old=self.textEdit_log_name_content.toPlainText()
+
+			self.textEdit_log_name_content.setPlainText(log_name_content_old+item)
+			self.textEdit_log_name_content.moveCursor(QtGui.QTextCursor.End) 
+
+		
+	def internal_cross_ping_show_log_content(self):
+		global username, password
+		
+		if self.textEdit_log_file_name.toPlainText()=='':
+			QMessageBox.information(self,"Warning","Please input the log file name you need to check(* is allowed)",QMessageBox.Ok)
+		else:
+			log_file_name=self.textEdit_log_file_name.toPlainText()
+			cmd='cat /data2/TMP/tsdss/DSC_Internal_Cross_Ping_Tool/internal_ping_logs/'+log_file_name
+			log_content=ssh_onetime_ping('10.162.28.185',username,password,cmd)
+			
+			self.textEdit_log_name_content.setPlainText('')
+			for item in log_content:
+				log_name_content_old=self.textEdit_log_name_content.toPlainText()
+	
+				self.textEdit_log_name_content.setPlainText(log_name_content_old+item)
+				self.textEdit_log_name_content.moveCursor(QtGui.QTextCursor.End) 
+				
+				
+	def start_internal_cross_ping(self):
+		global username, password
+		
+		cmd_check_status="ps -ef | grep DSC_Internal_Cross_Ping_for_Linux"
+		check_internal_cross_ping_status=ssh_onetime_ping('10.162.28.185',username,password,cmd_check_status)
+		print(check_internal_cross_ping_status)
+		
+		str_check_internal_cross_ping_status=""
+		for item in check_internal_cross_ping_status:
+			str_check_internal_cross_ping_status=str_check_internal_cross_ping_status+item
+		print(str_check_internal_cross_ping_status)
+		
+		if "python3 /data2/TMP/tsdss/DSC_Internal_Cross_Ping_Tool/DSC_Internal_Cross_Ping_for_Linux.py" in str_check_internal_cross_ping_status:
+			QMessageBox.information(self,"Information","Already running for some time, please check log directly",QMessageBox.Ok)
+			self.textEdit_log_name_content.setPlainText('DSC internal cross ping status: Already running')
+
+		else:
+			#cmd_start_internal_cross_ping="cd /data2/TMP/tsdss/DSC_Internal_Cross_Ping_Tool;nohup python3 DSC_Internal_Cross_Ping_for_Linux.py "+username+" "+password+" &"
+			cmd_start_internal_cross_ping="nohup python3 /data2/TMP/tsdss/DSC_Internal_Cross_Ping_Tool/DSC_Internal_Cross_Ping_for_Linux.py "+username+" "+password+" &"
+			#cmd_start_internal_cross_ping="pwd"
+			print(cmd_start_internal_cross_ping)
+			start_internal_cross_ping_result=ssh_nohup_cmd('10.162.28.185',username,password,cmd_start_internal_cross_ping)
+			print(start_internal_cross_ping_result)
+			QMessageBox.information(self,"Information","Just start the internal cross ping, you can check logs after 1 min",QMessageBox.Ok)
+
+			self.textEdit_log_name_content.setPlainText('DSC internal cross ping status: Just started')
+			
+			
+#********************************************************************************************************
+#************************    Function: DSC Internal Cross Ping Diagram   ********************************
+#********************************************************************************************************
+
+	def add0_datetime(self,datetime):
+		if int(datetime)<10:
+			datetime=str(0)+str(datetime)
+			return datetime
+		else:
+			return datetime
+			
+	def getfiledate(self,kpi_file_name):
+		#print(kpi_file_name)
+		#print(type(kpi_file_name))
+		filedate=kpi_file_name.split('.')[-2].split('_')[-1]
+		#print(filedate)
+		return filedate
+	
+	def download_DSC_internal_ping_kpi_files(self):
+		global username, password, start_datetime,end_datetime
+		username='g800472'
+		password='Orange666$'
+		
+		start_datetime_year=self.dateTimeEdit_start_time.date().year()
+		end_datetime_year=self.dateTimeEdit_end_time.date().year()
+		
+		start_datetime_month=self.add0_datetime(self.dateTimeEdit_start_time.date().month())
+		end_datetime_month=self.add0_datetime(self.dateTimeEdit_end_time.date().month())
+		
+		
+		start_datetime_day=self.add0_datetime(self.dateTimeEdit_start_time.date().day())
+		end_datetime_day=self.add0_datetime(self.dateTimeEdit_end_time.date().day())
+		
+		start_datetime_hour=self.add0_datetime(self.dateTimeEdit_start_time.time().hour())
+		end_datetime_hour=self.add0_datetime(self.dateTimeEdit_end_time.time().hour())
+		
+		start_datetime_min=self.add0_datetime(self.dateTimeEdit_start_time.time().minute())
+		end_datetime_min=self.add0_datetime(self.dateTimeEdit_end_time.time().minute())
+		
+		start_date=str(start_datetime_year)+str(start_datetime_month)+str(start_datetime_day)
+		end_date=str(end_datetime_year)+str(end_datetime_month)+str(end_datetime_day)
+		print(start_date)
+		print(end_date)
+		
+		start_datetime=str(start_datetime_year)+str(start_datetime_month)+str(start_datetime_day)+str(start_datetime_hour)+str(start_datetime_min)
+		end_datetime=str(end_datetime_year)+str(end_datetime_month)+str(end_datetime_day)+str(end_datetime_hour)+str(end_datetime_min)
+		
+		print(start_datetime)
+		print(end_datetime)
+
+		cmd='cd /data2/TMP/tsdss/DSC_Internal_Cross_Ping_Tool/internal_ping_logs/; ls *.csv'
+		#cmd='pwd;ls'
+		#print(cmd)
+		all_kpi_csv_list=ssh_onetime_ping('10.162.28.185',username,password,cmd)
+		#Aresult=all_kpi_csv_list.split('\n')
+		#print(all_kpi_csv_list)
+		all_kpi_csv_filename=[]
+		for item in all_kpi_csv_list:
+			all_kpi_csv_filename.append(item.split('\n')[0])
+		#print('all_kpi_file_name:')
+		#print(all_kpi_csv_filename)
+
+
+		kpi_file_meet_datetime_list=[]
+		for i in all_kpi_csv_filename:
+			if start_date<=self.getfiledate(i)<=end_date:
+				#print(start_datetime+self.getfiledate(i)+end_datetime)
+				kpi_file_meet_datetime_list.append(i)
+		print('kpi_file_meet_datetime_list:')
+		print(kpi_file_meet_datetime_list)
+		
+		if kpi_file_meet_datetime_list==[]:
+			QMessageBox.information(self,"Information","No KPI files for the time slot you selected.",QMessageBox.Ok)
+	
+		else:
+			
+			try:
+				shutil.rmtree(os.getcwd()+"\\file\\kpi_files\\")
+			except:
+				pass
+			tarfilelist=''
+			for i in kpi_file_meet_datetime_list:
+				tarfilelist=tarfilelist+'"'+i+'"'+' '
+		
+			cmd='cd /data2/TMP/tsdss/DSC_Internal_Cross_Ping_Tool/internal_ping_logs/; tar czvf /data2/TMP/tsdss/DSC_Internal_Cross_Ping_Tool/internal_ping_logs/KPI_file.tar.gz '+tarfilelist
+			#print(cmd)
+			tar_result=ssh_onetime_ping('10.162.28.185',username,password,cmd)
+			#print(tar_result)
+			
+			kpidirectory=os.getcwd()+r'\\file\\kpi_files\\'
+			if not os.path.exists(kpidirectory):
+				os.makedirs(kpidirectory)
+				
+			transport = paramiko.Transport('10.162.28.185', 22)
+			transport.connect(username=username, password=password)
+			sftp = paramiko.SFTPClient.from_transport(transport)
+			sftp.get('/data2/TMP/tsdss/DSC_Internal_Cross_Ping_Tool/internal_ping_logs/KPI_file.tar.gz',os.getcwd()+"\\file\\kpi_files\\KPI_file.tar.gz")
+			
+			remove_tar_file = ssh_onetime_ping('10.162.28.185',username,password,'cd /data2/TMP/tsdss/DSC_Internal_Cross_Ping_Tool/internal_ping_logs/; rm KPI_file.tar.gz')
+	
+			tar = tarfile.open(os.getcwd()+"\\file\\kpi_files\\KPI_file.tar.gz")
+			names = tar.getnames()
+			for name in names:
+				tar.extract(name, os.getcwd()+"\\file\\kpi_files")
+			tar.close()
+			os.remove(os.getcwd()+"\\file\\kpi_files\\KPI_file.tar.gz")
+			
+			dirs = os.listdir(os.getcwd()+"\\file\\kpi_files\\")
+
+			self.textEdit_log_name_content.setPlainText("KPI files list:\n")
+			for item in dirs:
+				kpi_downloaded_files_old=self.textEdit_log_name_content.toPlainText()
+				self.textEdit_log_name_content.setPlainText(kpi_downloaded_files_old+item+"\n")
+			
+			QMessageBox.information(self,"Information",'Download KPI files Successfully!',QMessageBox.Ok)
+
+	def get_line_ready(self,path,kpi_file_name_item):
+		
+		line_path=[]
+		if path in kpi_file_name_item:
+			with open(os.getcwd()+"\\file\\kpi_files\\"+kpi_file_name_item, 'r') as myFile:  
+				lines=csv.reader(myFile)  
+				for row in lines:
+					line_path.append([row[0],row[1]])
+		return line_path
+		
+	def get_line_meet_timeslot(self,start_time,end_time,line):
+		#print(start_time)
+		#print(end_time)
+		new_line=[]
+		for item in line:
+			#print(item[0]+item[1])
+			if start_time<=item[0]<=end_time:
+				#print(item[0]+' '+item[1])
+				new_line.append(item)
+				#new_line_rate.append(item[0])
+				#print(item)
+		#print('new line:')
+		#print(new_line)
+		#return new_line
+		new_line_final=[]
+		new_line_final_time=[]
+
+		for item in new_line:
+			for item1 in new_line_final:
+				if item1[0] not in new_line_final_time:
+					new_line_final_time.append(item1[0])
+			if item[0] not in new_line_final_time:
+				new_line_final.append(item)
+		return new_line_final
+
+
+	def get_line_time_ready(self,line):
+		line_time_ready=[]
+		for item in line:
+			line_time_ready.append(item[0])
+		return line_time_ready
+			
+
+	def got_y_axis_final(self,line_meet_timeslot,x_axis_final):
+
+		y_axis_final=[]
+		for x_axis in x_axis_final:
+			for y_axis in line_meet_timeslot:
+				if y_axis[0]==x_axis:
+					y_axis_final.append(float(y_axis[1].strip('%'))/100)
+		return y_axis_final
+		
+	def got_x_axis_final(self,l1,l2,l3,l4,l5):
+		x_axis_final=[]
+		for i in l1:
+			if i in l2 and i in l3 and i in l4 and i in l5:
+				x_axis_final.append(i)
+		return x_axis_final
+
+	def generate_report(self):
+		self.textEdit_log_name_content.setPlainText('')
+		t= threading.Thread(target=self.generate_report_soldier)
+		t.start()
+
+	def update_textEdit_log_name_content(self,value):
+		content_old=self.textEdit_log_name_content.toPlainText()
+		self.textEdit_log_name_content.setPlainText(content_old+value+'\n')
+		
+	def show_download_kpi_file_popup(self,value):
+		QMessageBox.information(self,"Information",'Please download KPI files before generate report!',QMessageBox.Ok)
+
+
+	def generate_report_soldier(self):
+		global username,password,start_datetime,end_datetime
+		global x_axis_final_hk_dsc,y_axis_final_hk_sg,y_axis_final_hk_ams,y_axis_final_hk_frt,y_axis_final_hk_chi,y_axis_final_hk_dal
+		#self.textEdit_log_name_content.setPlainText('')
+		kpi_file_name = os.listdir(os.getcwd()+"\\file\\kpi_files\\")
+		#print('Got kpi_file_name')
+
+			#self.textEdit_log_name_content.setPlainText("KPI files list:\n")
+		line_hk_sg=[]
+		line_hk_ams=[]
+		line_hk_frt=[]
+		line_hk_chi=[]
+		line_hk_dal=[]
+		line_sg_ams=[]
+		line_sg_frt=[]
+		line_sg_chi=[]
+		line_sg_dal=[]
+		line_ams_chi=[]
+		line_ams_dal=[]
+		line_ams_frt=[]
+		line_frt_chi=[]
+		line_frt_dal=[]	
+		line_chi_dal=[]
+		print('(1/4)Collecting of KPI source data starts...')
+		"""content_old=self.textEdit_log_name_content.toPlainText()
+		self.textEdit_log_name_content.setPlainText(content_old+'(1/4)Collecting of KPI source data starts...'+'\n')"""
+		self.update_textEdit_log_name_content_signal.emit('(1/4)Collecting of KPI source data starts...')
+		for item in kpi_file_name:
+			line_hk_sg+=self.get_line_ready('HK DSC-SG DSC',item)
+			line_hk_ams+=self.get_line_ready('HK DSC-AMS DSC',item)
+			line_hk_frt+=self.get_line_ready('HK DSC-FRT DSC',item)
+			line_hk_chi+=self.get_line_ready('HK DSC-CHI DSC',item)
+			line_hk_dal+=self.get_line_ready('HK DSC-DAL DSC',item)
+			line_sg_ams+=self.get_line_ready('SG DSC-AMS DSC',item)
+			line_sg_frt+=self.get_line_ready('SG DSC-FRT DSC',item)
+			line_sg_chi+=self.get_line_ready('SG DSC-CHI DSC',item)
+			line_sg_dal+=self.get_line_ready('SG DSC-DAL DSC',item)
+			line_ams_chi+=self.get_line_ready('AMS DSC-CHI DSC',item)
+			line_ams_dal+=self.get_line_ready('AMS DSC-DAL DSC',item)
+			line_ams_frt+=self.get_line_ready('AMS DSC-FRT DSC',item)
+			line_frt_chi+=self.get_line_ready('FRT DSC-CHI DSC',item)
+			line_frt_dal+=self.get_line_ready('FRT DSC-DAL DSC',item)
+			line_chi_dal+=self.get_line_ready('CHI DSC-DAL DSC',item)
+		print('(1/4)Collecting of KPI source data Done!')
+		"""content_old=self.textEdit_log_name_content.toPlainText()
+		self.textEdit_log_name_content.setPlainText(content_old+'(1/4)Collecting of KPI source data Done!'+'\n')"""
+		self.update_textEdit_log_name_content_signal.emit('(1/4)Collecting of KPI source data Done!')
+		line_hk_sg_meet_timeslot=[]
+		line_hk_ams_meet_timeslot=[]
+		line_hk_frt_meet_timeslot=[]
+		line_hk_chi_meet_timeslot=[]
+		line_hk_dal_meet_timeslot=[]
+		line_sg_ams_meet_timeslot=[]
+		line_sg_frt_meet_timeslot=[]
+		line_sg_chi_meet_timeslot=[]
+		line_sg_dal_meet_timeslot=[]
+		line_ams_chi_meet_timeslot=[]
+		line_ams_dal_meet_timeslot=[]
+		line_ams_frt_meet_timeslot=[]
+		line_frt_chi_meet_timeslot=[]
+		line_frt_dal_meet_timeslot=[]
+		line_chi_dal_meet_timeslot=[]
+		print('(2/4)Analysis of KPI source data starts(may take few mins)...')
+		"""content_old=self.textEdit_log_name_content.toPlainText()
+		self.textEdit_log_name_content.setPlainText(content_old+'(2/4)Analysis of KPI source data starts...'+'\n')"""
+		self.update_textEdit_log_name_content_signal.emit('(2/4)Analysis of KPI source data starts(may take few mins)...')
+		try:
+			line_hk_sg_meet_timeslot=self.get_line_meet_timeslot(start_datetime,end_datetime,line_hk_sg)
+			line_hk_ams_meet_timeslot=self.get_line_meet_timeslot(start_datetime,end_datetime,line_hk_ams)
+			line_hk_frt_meet_timeslot=self.get_line_meet_timeslot(start_datetime,end_datetime,line_hk_frt)
+			line_hk_chi_meet_timeslot=self.get_line_meet_timeslot(start_datetime,end_datetime,line_hk_chi)
+			line_hk_dal_meet_timeslot=self.get_line_meet_timeslot(start_datetime,end_datetime,line_hk_dal)
+			line_sg_ams_meet_timeslot=self.get_line_meet_timeslot(start_datetime,end_datetime,line_sg_ams)
+			line_sg_frt_meet_timeslot=self.get_line_meet_timeslot(start_datetime,end_datetime,line_sg_frt)
+			line_sg_chi_meet_timeslot=self.get_line_meet_timeslot(start_datetime,end_datetime,line_sg_chi)
+			line_sg_dal_meet_timeslot=self.get_line_meet_timeslot(start_datetime,end_datetime,line_sg_dal)
+			line_ams_chi_meet_timeslot=self.get_line_meet_timeslot(start_datetime,end_datetime,line_ams_chi)
+			line_ams_dal_meet_timeslot=self.get_line_meet_timeslot(start_datetime,end_datetime,line_ams_dal)
+			line_ams_frt_meet_timeslot=self.get_line_meet_timeslot(start_datetime,end_datetime,line_ams_frt)
+			line_frt_chi_meet_timeslot=self.get_line_meet_timeslot(start_datetime,end_datetime,line_frt_chi)
+			line_frt_dal_meet_timeslot=self.get_line_meet_timeslot(start_datetime,end_datetime,line_frt_dal)
+			line_chi_dal_meet_timeslot=self.get_line_meet_timeslot(start_datetime,end_datetime,line_chi_dal)
+			print('(2/4)Analysis of KPI source data Done!')
+			"""content_old=self.textEdit_log_name_content.toPlainText()
+			self.textEdit_log_name_content.setPlainText(content_old+'(2/4)Analysis of KPI source data Done!'+'\n')"""
+			self.update_textEdit_log_name_content_signal.emit('(2/4)Analysis of KPI source data Done!')
+			#print('line_hk_sg_meet_timeslot:\n')
+			#print(line_hk_sg_meet_timeslot)
+			#print(start_datetime+' '+end_datetime)
+		except NameError:
+			#print(NameError)
+			print('(2/4)Analysis of KPI source data failed!')
+			"""content_old=self.textEdit_log_name_content.toPlainText()
+			self.textEdit_log_name_content.setPlainText(content_old+'(2/4)Analysis of KPI source data failed!'+'\n')"""
+			self.update_textEdit_log_name_content_signal.emit('(2/4)Analysis of KPI source data failed!')
+			self.show_download_kpi_file_popup_signal.emit('ok')
+			#QMessageBox.information(self,"Information",'Please download KPI files before generate report!',QMessageBox.Ok)
+			return 1
+
+		print('(3/4)Build X/Y axis starts...')
+		"""content_old=self.textEdit_log_name_content.toPlainText()
+		self.textEdit_log_name_content.setPlainText(content_old+'(3/4)Build X/Y axis starts...'+'\n')"""
+		self.update_textEdit_log_name_content_signal.emit('(3/4)Build X/Y axis starts...')
+		time_hk_sg  =self.get_line_time_ready(line_hk_sg_meet_timeslot)
+		time_hk_ams =self.get_line_time_ready(line_hk_ams_meet_timeslot)
+		time_hk_frt =self.get_line_time_ready(line_hk_frt_meet_timeslot)
+		time_hk_chi =self.get_line_time_ready(line_hk_chi_meet_timeslot)
+		time_hk_dal =self.get_line_time_ready(line_hk_dal_meet_timeslot)
+		time_sg_ams =self.get_line_time_ready(line_sg_ams_meet_timeslot)
+		time_sg_frt =self.get_line_time_ready(line_sg_frt_meet_timeslot)
+		time_sg_chi =self.get_line_time_ready(line_sg_chi_meet_timeslot)
+		time_sg_dal =self.get_line_time_ready(line_sg_dal_meet_timeslot)
+		time_ams_chi =self.get_line_time_ready(line_ams_chi_meet_timeslot)
+		time_ams_dal =self.get_line_time_ready(line_ams_dal_meet_timeslot)
+		time_ams_frt =self.get_line_time_ready(line_ams_frt_meet_timeslot)
+		time_frt_chi =self.get_line_time_ready(line_frt_chi_meet_timeslot)
+		time_frt_dal =self.get_line_time_ready(line_frt_dal_meet_timeslot)
+		time_chi_dal =self.get_line_time_ready(line_chi_dal_meet_timeslot)
+		
+		x_axis_final_hk_dsc=self.got_x_axis_final(time_hk_sg,time_hk_ams,time_hk_frt,time_hk_chi,time_hk_dal)
+		#print('Got X axis')
+		#print(len(x_axis_final_hk_dsc))
+		y_axis_final_hk_sg=self.got_y_axis_final(line_hk_sg_meet_timeslot,x_axis_final_hk_dsc)
+		y_axis_final_hk_ams=self.got_y_axis_final(line_hk_ams_meet_timeslot,x_axis_final_hk_dsc)
+		y_axis_final_hk_frt=self.got_y_axis_final(line_hk_frt_meet_timeslot,x_axis_final_hk_dsc)
+		y_axis_final_hk_chi=self.got_y_axis_final(line_hk_chi_meet_timeslot,x_axis_final_hk_dsc)
+		y_axis_final_hk_dal=self.got_y_axis_final(line_hk_dal_meet_timeslot,x_axis_final_hk_dsc)
+		#print('Got Y axis')
+		#print(y_axis_final_hk_sg)
+		print('(3/4)Build X/Y axis Done!(Amount: ' + str(len(y_axis_final_hk_sg)) +')')
+		"""content_old=self.textEdit_log_name_content.toPlainText()
+		self.textEdit_log_name_content.setPlainText(content_old+'(3/4)Build X/Y axis Done!(Amount: ' + str(len(y_axis_final_hk_sg)) +')'+'\n')"""
+		self.update_textEdit_log_name_content_signal.emit('(3/4)Build X/Y axis Done!(Amount: ' + str(len(y_axis_final_hk_sg)) +'x'+ str(len(y_axis_final_hk_sg)) +')')
+		
+		self.show_figure_signal.emit('ok')
+		
+		
+	def show_figure(self):
+		global x_axis_final_hk_dsc,y_axis_final_hk_sg,y_axis_final_hk_ams,y_axis_final_hk_frt,y_axis_final_hk_chi,y_axis_final_hk_dal
+		
+		print('(4/4)Show figure!')
+		"""content_old=self.textEdit_log_name_content.toPlainText()
+		self.textEdit_log_name_content.setPlainText(content_old+'(4/4)Show figure!'+'\n')"""
+		self.update_textEdit_log_name_content_signal.emit('(4/4)Show figure!')
+		
+		#style.use('ggplot')
+		fig = plt.figure(num='DSC internal cross ping: package loss rate diagram')
+		
+		ax1 = fig.add_subplot(231)
+		line_hk_sg_diagram,  =plt.plot(x_axis_final_hk_dsc, y_axis_final_hk_sg,color='b', linewidth=1, alpha=1,linestyle = '-')
+		line_hk_ams_diagram, =plt.plot(x_axis_final_hk_dsc, y_axis_final_hk_ams,color='g', linewidth=1, alpha=1, linestyle = '--')
+		line_hk_frt_diagram, =plt.plot(x_axis_final_hk_dsc, y_axis_final_hk_frt,color='r', linewidth=1, alpha=1,linestyle = ':')
+		line_hk_chi_diagram, =plt.plot(x_axis_final_hk_dsc, y_axis_final_hk_chi,color='y', linewidth=1, alpha=1, linestyle = '-.')
+		line_hk_dal_diagram, =plt.plot(x_axis_final_hk_dsc, y_axis_final_hk_dal,color='purple', linewidth=1, alpha=1,linestyle = '--')
+		plt.title('HK DSC: Internal package loss rate', color='g',size=10)
+		plt.legend(handles = [line_hk_sg_diagram, line_hk_ams_diagram,line_hk_frt_diagram,line_hk_chi_diagram,line_hk_dal_diagram], labels = ['HKDSC-SGDSC', 'HKDSC-AMSDSC','HKDSC-FRTDSC', 'HKDSC-CHIDSC','HKDSC-DALDSC'], loc = 'best')
+		#plt.ylim((0, 1.1))
+		#plt.yticks([0, 0.2,0.4,0.6,0.8,1],['0%','20%','40%','60%','80%','100%'])
+		
+		def to_percent(temp, position):
+			return '%2.1f'%(100*temp) + '%'
+		plt.gca().yaxis.set_major_formatter(FuncFormatter(to_percent))
+		
+		plt.xlabel(u'Package loss time',fontsize=12)
+		plt.ylabel(u'Package loss rate',fontsize=12)
+		
+
+		#ax2 = fig.add_subplot(232)
+		#ax3 = fig.add_subplot(233)
+
+		
+		ax1.xaxis.set_major_locator(mticker.MaxNLocator(10))
+		for label in ax1.xaxis.get_ticklabels():
+			label.set_rotation(30)
+			label.set_horizontalalignment('right')
+
+		#ax1.grid(True)
+
+		plt.show()
+
 
 """****************************************************************************************************"""
 """***************************             2. Login Window            *********************************"""
@@ -1145,6 +1618,10 @@ if __name__=="__main__":
 	myWin.start_7_24_ping_signal.connect(all_Day_Ping_Result.reset_all_day_ping_window)
 	mylogin.login_signal.connect(myWin.test_account)
 
+	myWin.update_textEdit_log_name_content_signal.connect(myWin.update_textEdit_log_name_content)
+	myWin.show_download_kpi_file_popup_signal.connect(myWin.show_download_kpi_file_popup)
+	myWin.show_figure_signal.connect(myWin.show_figure)
+	
 	input_alarms=Input_alarms()
 	input_alarms.alarms_inputed_signal.connect(myWin.alarm_content_handler)
 	input_alarms.alarms_inputed_signal.connect(myWin.generatecmd_troubleshooting)

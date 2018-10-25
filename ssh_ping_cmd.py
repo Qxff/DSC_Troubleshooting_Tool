@@ -234,6 +234,36 @@ def ssh_jump_server_cisco_cmd(router_name,username,password,cmd1,cmd2):
 
 
 
+"""****************************************************************************************************"""
+"""***********************            ssh for nohup commands           ******************************"""
+"""****************************************************************************************************"""
+
+def ssh_nohup_cmd(hostname,username,password,cmd):
+
+	#paramiko.util.log_to_file('paramiko.log')
+	
+	#creat SSH object
+	ssh = paramiko.SSHClient()
+
+	#skip key
+	ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+	#connect to DSC
+	ssh.connect(hostname=hostname, port=22, username=username, password=password)
+
+	chan=ssh.invoke_shell()
+	chan.send(cmd+'\n')
+	#res=chan.recv(65535)
+	time.sleep(0.5)
+	chan.send('\n')
+	time.sleep(0.5)
+	
+	res = chan.recv(65535).decode('utf8')
+	result = res
+	ssh.close()
+	return result
+
+
 if __name__=="__main__": 
 	print('before')
 	#results=ssh_jump_server_juniper_cmd("r002-hnk2-ngn.ncc.syniverse.com","g800472","Selenium666$","ping 192.168.71.206 count 5 rapid wait 1","show system uptime | match current")

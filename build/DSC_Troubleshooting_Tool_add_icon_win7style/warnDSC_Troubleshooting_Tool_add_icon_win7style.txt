@@ -30,9 +30,9 @@ missing module named urllib.quote_plus - imported by urllib, requests.compat
 missing module named urllib.unquote - imported by urllib, asn1crypto._iri, requests.compat
 missing module named urllib.quote - imported by urllib, asn1crypto._iri, requests.compat
 missing module named grp - imported by shutil, tarfile, C:\Users\g800472\Desktop\Python\DSS_tools\DSC_Troubleshooting_Tool\DSC_Troubleshooting_Tool.py
-missing module named 'org.python' - imported by copy, C:\Users\g800472\Desktop\Python\DSS_tools\DSC_Troubleshooting_Tool\DSC_Troubleshooting_Tool.py, xml.sax
 missing module named pwd - imported by posixpath, shutil, tarfile, http.server, webbrowser, getpass, netrc, C:\Users\g800472\Desktop\Python\DSS_tools\DSC_Troubleshooting_Tool\DSC_Troubleshooting_Tool.py
 missing module named _dummy_threading - imported by dummy_threading, C:\Users\g800472\Desktop\Python\DSS_tools\DSC_Troubleshooting_Tool\DSC_Troubleshooting_Tool.py
+missing module named 'org.python' - imported by copy, C:\Users\g800472\Desktop\Python\DSS_tools\DSC_Troubleshooting_Tool\DSC_Troubleshooting_Tool.py, xml.sax
 missing module named ConfigParser - imported by pymysql.optionfile
 missing module named __builtin__ - imported by paramiko.py3compat, ptyprocess.ptyprocess, pymysql._compat
 missing module named AppKit - imported by pyperclip

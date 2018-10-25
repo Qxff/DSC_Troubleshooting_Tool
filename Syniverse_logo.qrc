@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="Logo">
+    <file>Syniverse_logo.png</file>
+  </qresource>
+</RCC>
