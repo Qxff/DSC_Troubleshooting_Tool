@@ -44,6 +44,7 @@ import re
 import paramiko
 import copy
 import time,datetime
+from datetime import datetime, timedelta, timezone
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -84,6 +85,9 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
 	show_download_kpi_file_popup_signal=pyqtSignal(str)
 	show_figure_signal=pyqtSignal(str)
 	
+	show_download_kpi_file_failed_popup_signal=pyqtSignal(str)
+	update_textEdit_log_name_content_list_signal=pyqtSignal(list)
+
 	def __init__(self, parent=None):    
 		super(MyMainWindow, self).__init__(parent)
 		self.setupUi(self)
@@ -199,8 +203,15 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
 		
 		self.lineEdit_GID.setText(username)
 
-		nowTime=datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
-		self.dateTimeEdit_start_time.setDateTime(QDateTime.fromString(nowTime, 'yyyy-MM-dd hh:mm'))
+		#nowTime=datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
+		nowTime=datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%Y-%m-%d %H:%M')
+		#self.dateTimeEdit_start_time.setDateTime(QDateTime.fromString(nowTime, 'yyyy-MM-dd hh:mm'))
+		
+		nowTime_utc=datetime.utcnow().replace(tzinfo=timezone.utc)
+		start_time_show= nowTime_utc.astimezone(timezone(timedelta(hours=-3))).strftime('%Y-%m-%d %H:%M')
+		
+		self.dateTimeEdit_start_time.setDateTime(QDateTime.fromString(start_time_show, 'yyyy-MM-dd hh:mm'))
+		
 		self.dateTimeEdit_end_time.setDateTime(QDateTime.fromString(nowTime, 'yyyy-MM-dd hh:mm'))
 		
 		#print(username,password)
@@ -1067,11 +1078,30 @@ where ni.item='DSC_Peer' group by ni.value;"""
 		filedate=kpi_file_name.split('.')[-2].split('_')[-1]
 		#print(filedate)
 		return filedate
-	
+
 	def download_DSC_internal_ping_kpi_files(self):
+		self.textEdit_log_name_content.setPlainText('')
+		t= threading.Thread(target=self.download_DSC_internal_ping_kpi_files_soldier)
+		t.start()
+
+	def update_textEdit_log_name_content(self,value):
+		content_old=self.textEdit_log_name_content.toPlainText()
+		self.textEdit_log_name_content.setPlainText(content_old+value+'\n')
+		
+	def update_textEdit_log_name_content_list(self,file_list):
+		for item in file_list:
+			content_old=self.textEdit_log_name_content.toPlainText()
+			self.textEdit_log_name_content.setPlainText(content_old+item+'\n')
+		
+	def show_download_kpi_file_failed_popup(self,value):
+		if value=='failed':
+			QMessageBox.information(self,"Information",'No KPI files for the timeslot you selected.',QMessageBox.Ok)
+		else:
+			QMessageBox.information(self,"Information",'Download KPI files Successfully!',QMessageBox.Ok)
+		
+
+	def download_DSC_internal_ping_kpi_files_soldier(self):
 		global username, password, start_datetime,end_datetime
-		username='g800472'
-		password='Orange666$'
 		
 		start_datetime_year=self.dateTimeEdit_start_time.date().year()
 		end_datetime_year=self.dateTimeEdit_end_time.date().year()
@@ -1100,6 +1130,7 @@ where ni.item='DSC_Peer' group by ni.value;"""
 		print(start_datetime)
 		print(end_datetime)
 
+		self.update_textEdit_log_name_content_signal.emit('(1/4)Check KPI files in DSC starts...') 
 		cmd='cd /data2/TMP/tsdss/DSC_Internal_Cross_Ping_Tool/internal_ping_logs/; ls *.csv'
 		#cmd='pwd;ls'
 		#print(cmd)
@@ -1122,7 +1153,10 @@ where ni.item='DSC_Peer' group by ni.value;"""
 		print(kpi_file_meet_datetime_list)
 		
 		if kpi_file_meet_datetime_list==[]:
-			QMessageBox.information(self,"Information","No KPI files for the time slot you selected.",QMessageBox.Ok)
+			
+			self.update_textEdit_log_name_content_signal.emit('(1/4)Check KPI files in DSC failed!')
+			self.show_download_kpi_file_failed_popup_signal.emit('failed')
+			#QMessageBox.information(self,"Information","No KPI files for the time slot you selected.",QMessageBox.Ok)
 	
 		else:
 			
@@ -1130,10 +1164,13 @@ where ni.item='DSC_Peer' group by ni.value;"""
 				shutil.rmtree(os.getcwd()+"\\file\\kpi_files\\")
 			except:
 				pass
+			
+			self.update_textEdit_log_name_content_signal.emit('(1/4)Check KPI files in DSC done!')
+			self.update_textEdit_log_name_content_signal.emit('(2/4)Tar & Download KPI files from DSC start...')
 			tarfilelist=''
 			for i in kpi_file_meet_datetime_list:
 				tarfilelist=tarfilelist+'"'+i+'"'+' '
-		
+			
 			cmd='cd /data2/TMP/tsdss/DSC_Internal_Cross_Ping_Tool/internal_ping_logs/; tar czvf /data2/TMP/tsdss/DSC_Internal_Cross_Ping_Tool/internal_ping_logs/KPI_file.tar.gz '+tarfilelist
 			#print(cmd)
 			tar_result=ssh_onetime_ping('10.162.28.185',username,password,cmd)
@@ -1150,6 +1187,10 @@ where ni.item='DSC_Peer' group by ni.value;"""
 			
 			remove_tar_file = ssh_onetime_ping('10.162.28.185',username,password,'cd /data2/TMP/tsdss/DSC_Internal_Cross_Ping_Tool/internal_ping_logs/; rm KPI_file.tar.gz')
 	
+	
+			self.update_textEdit_log_name_content_signal.emit('(2/4)Tar & Download KPI files from DSC done!')
+			
+			self.update_textEdit_log_name_content_signal.emit('(3/4)Extract KPI files start...')
 			tar = tarfile.open(os.getcwd()+"\\file\\kpi_files\\KPI_file.tar.gz")
 			names = tar.getnames()
 			for name in names:
@@ -1159,12 +1200,20 @@ where ni.item='DSC_Peer' group by ni.value;"""
 			
 			dirs = os.listdir(os.getcwd()+"\\file\\kpi_files\\")
 
-			self.textEdit_log_name_content.setPlainText("KPI files list:\n")
-			for item in dirs:
-				kpi_downloaded_files_old=self.textEdit_log_name_content.toPlainText()
-				self.textEdit_log_name_content.setPlainText(kpi_downloaded_files_old+item+"\n")
+			self.update_textEdit_log_name_content_signal.emit('(3/4)Extract KPI files done!')
 			
-			QMessageBox.information(self,"Information",'Download KPI files Successfully!',QMessageBox.Ok)
+			#self.textEdit_log_name_content.setPlainText("KPI files list:\n")
+			file_list=[]
+			for item in dirs:
+				file_list.append(item)
+			
+			#QMessageBox.information(self,"Information",'Download KPI files Successfully!',QMessageBox.Ok)
+			
+			self.update_textEdit_log_name_content_signal.emit('(4/4)Download KPI files successful!')
+			self.update_textEdit_log_name_content_signal.emit('\nKPI files list:')
+			self.update_textEdit_log_name_content_list_signal.emit(file_list)
+			
+			self.show_download_kpi_file_failed_popup_signal.emit('ok')
 
 	def get_line_ready(self,path,kpi_file_name_item):
 		
@@ -1242,6 +1291,11 @@ where ni.item='DSC_Peer' group by ni.value;"""
 		global username,password,start_datetime,end_datetime
 		global x_axis_final_hk_dsc,y_axis_final_hk_sg_hk_dsc,y_axis_final_hk_ams_hk_dsc,y_axis_final_hk_frt_hk_dsc,y_axis_final_hk_chi_hk_dsc,y_axis_final_hk_dal_hk_dsc
 		global x_axis_final_sg_dsc,y_axis_final_hk_sg_sg_dsc,y_axis_final_sg_ams_sg_dsc,y_axis_final_sg_frt_sg_dsc,y_axis_final_sg_chi_sg_dsc,y_axis_final_sg_dal_sg_dsc
+		global x_axis_final_ams_dsc,y_axis_final_hk_ams_ams_dsc,y_axis_final_sg_ams_ams_dsc,y_axis_final_ams_chi_ams_dsc,y_axis_final_ams_dal_ams_dsc,y_axis_final_ams_frt_ams_dsc
+		global x_axis_final_frt_dsc,y_axis_final_hk_frt_frt_dsc,y_axis_final_sg_frt_frt_dsc,y_axis_final_ams_frt_frt_dsc,y_axis_final_frt_chi_frt_dsc,y_axis_final_frt_dal_frt_dsc
+		global x_axis_final_chi_dsc,y_axis_final_hk_chi_chi_dsc,y_axis_final_sg_chi_chi_dsc,y_axis_final_ams_chi_chi_dsc,y_axis_final_frt_chi_chi_dsc,y_axis_final_chi_dal_chi_dsc
+		global x_axis_final_dal_dsc,y_axis_final_hk_dal_dal_dsc,y_axis_final_sg_dal_dal_dsc,y_axis_final_ams_dal_dal_dsc,y_axis_final_frt_dal_dal_dsc,y_axis_final_chi_dal_dal_dsc
+		
 		#self.textEdit_log_name_content.setPlainText('')
 		kpi_file_name = os.listdir(os.getcwd()+"\\file\\kpi_files\\")
 		#print('Got kpi_file_name')
@@ -1378,10 +1432,37 @@ where ni.item='DSC_Peer' group by ni.value;"""
 		y_axis_final_sg_dal_sg_dsc=self.got_y_axis_final(line_sg_dal_meet_timeslot,x_axis_final_sg_dsc)
 		
 		
+		x_axis_final_ams_dsc=self.got_x_axis_final(time_hk_ams ,time_sg_ams ,time_ams_chi,time_ams_dal,time_ams_frt)
+		y_axis_final_hk_ams_ams_dsc=self.got_y_axis_final(line_hk_ams_meet_timeslot,x_axis_final_ams_dsc)
+		y_axis_final_sg_ams_ams_dsc=self.got_y_axis_final(line_sg_ams_meet_timeslot,x_axis_final_ams_dsc)
+		y_axis_final_ams_chi_ams_dsc=self.got_y_axis_final(line_ams_chi_meet_timeslot,x_axis_final_ams_dsc)
+		y_axis_final_ams_dal_ams_dsc=self.got_y_axis_final(line_ams_dal_meet_timeslot,x_axis_final_ams_dsc)
+		y_axis_final_ams_frt_ams_dsc=self.got_y_axis_final(line_ams_frt_meet_timeslot,x_axis_final_ams_dsc)
+		
+		
+		x_axis_final_frt_dsc=self.got_x_axis_final(time_hk_frt ,time_sg_frt,time_ams_frt,time_frt_chi,time_frt_dal)
+		y_axis_final_hk_frt_frt_dsc=self.got_y_axis_final(line_hk_frt_meet_timeslot,x_axis_final_frt_dsc)
+		y_axis_final_sg_frt_frt_dsc=self.got_y_axis_final(line_sg_frt_meet_timeslot,x_axis_final_frt_dsc)
+		y_axis_final_ams_frt_frt_dsc=self.got_y_axis_final(line_ams_frt_meet_timeslot,x_axis_final_frt_dsc)
+		y_axis_final_frt_chi_frt_dsc=self.got_y_axis_final(line_frt_chi_meet_timeslot,x_axis_final_frt_dsc)
+		y_axis_final_frt_dal_frt_dsc=self.got_y_axis_final(line_frt_dal_meet_timeslot,x_axis_final_frt_dsc)
+		
+		
+		x_axis_final_chi_dsc=self.got_x_axis_final(time_hk_chi ,time_sg_chi ,time_ams_chi,time_frt_chi,time_chi_dal)
+		y_axis_final_hk_chi_chi_dsc=self.got_y_axis_final(line_hk_chi_meet_timeslot,x_axis_final_chi_dsc)
+		y_axis_final_sg_chi_chi_dsc=self.got_y_axis_final(line_sg_chi_meet_timeslot,x_axis_final_chi_dsc)
+		y_axis_final_ams_chi_chi_dsc=self.got_y_axis_final(line_ams_chi_meet_timeslot,x_axis_final_chi_dsc)
+		y_axis_final_frt_chi_chi_dsc=self.got_y_axis_final(line_frt_chi_meet_timeslot,x_axis_final_chi_dsc)
+		y_axis_final_chi_dal_chi_dsc=self.got_y_axis_final(line_chi_dal_meet_timeslot,x_axis_final_chi_dsc)
 		
 		
 		
-		
+		x_axis_final_dal_dsc=self.got_x_axis_final(time_hk_dal ,time_sg_dal ,time_ams_dal,time_frt_dal,time_chi_dal)
+		y_axis_final_hk_dal_dal_dsc=self.got_y_axis_final(line_hk_dal_meet_timeslot,x_axis_final_dal_dsc)
+		y_axis_final_sg_dal_dal_dsc=self.got_y_axis_final(line_sg_dal_meet_timeslot,x_axis_final_dal_dsc)
+		y_axis_final_ams_dal_dal_dsc=self.got_y_axis_final(line_ams_dal_meet_timeslot,x_axis_final_dal_dsc)
+		y_axis_final_frt_dal_dal_dsc=self.got_y_axis_final(line_frt_dal_meet_timeslot,x_axis_final_dal_dsc)
+		y_axis_final_chi_dal_dal_dsc=self.got_y_axis_final(line_chi_dal_meet_timeslot,x_axis_final_dal_dsc)
 		
 		
 		print('(3/4)Build X/Y axis Done!(Amount: ' + str(len(y_axis_final_hk_sg_hk_dsc)) +')')
@@ -1395,6 +1476,27 @@ where ni.item='DSC_Peer' group by ni.value;"""
 	def show_figure(self):
 		global x_axis_final_hk_dsc,y_axis_final_hk_sg_hk_dsc,y_axis_final_hk_ams_hk_dsc,y_axis_final_hk_frt_hk_dsc,y_axis_final_hk_chi_hk_dsc,y_axis_final_hk_dal_hk_dsc
 		global x_axis_final_sg_dsc,y_axis_final_hk_sg_sg_dsc,y_axis_final_sg_ams_sg_dsc,y_axis_final_sg_frt_sg_dsc,y_axis_final_sg_chi_sg_dsc,y_axis_final_sg_dal_sg_dsc
+		global x_axis_final_ams_dsc,y_axis_final_hk_ams_ams_dsc,y_axis_final_sg_ams_ams_dsc,y_axis_final_ams_chi_ams_dsc,y_axis_final_ams_dal_ams_dsc,y_axis_final_ams_frt_ams_dsc
+		global x_axis_final_frt_dsc,y_axis_final_hk_frt_frt_dsc,y_axis_final_sg_frt_frt_dsc,y_axis_final_ams_frt_frt_dsc,y_axis_final_frt_chi_frt_dsc,y_axis_final_frt_dal_frt_dsc
+		global x_axis_final_chi_dsc,y_axis_final_hk_chi_chi_dsc,y_axis_final_sg_chi_chi_dsc,y_axis_final_ams_chi_chi_dsc,y_axis_final_frt_chi_chi_dsc,y_axis_final_chi_dal_chi_dsc
+		global x_axis_final_dal_dsc,y_axis_final_hk_dal_dal_dsc,y_axis_final_sg_dal_dal_dsc,y_axis_final_ams_dal_dal_dsc,y_axis_final_frt_dal_dal_dsc,y_axis_final_chi_dal_dal_dsc
+		
+		
+		"""time_hk_sg,   b      = '-')
+		time_hk_ams ,  g     = '--')
+		time_hk_frt ,  r     = '-.')
+		time_hk_chi ,  y     = ':')
+		time_hk_dal ,   purple     = '-')
+		time_sg_ams ,    k         = '--'
+		time_sg_frt,   c           = '-.'
+		time_sg_chi ,  m           = ':')
+		time_sg_dal ,  teal         = '-')
+		time_ams_chi,  tomato       = '--'
+		time_ams_dal,  tan          = '-.'
+		time_ams_frt,   olive       = ':')
+		time_frt_chi,  cyan         = '-')
+		time_frt_dal,  darksage     = '--'
+		time_chi_dal   pink         = '-.'"""
 		
 		print('(4/4)Show figure!')
 		"""content_old=self.textEdit_log_name_content.toPlainText()
@@ -1404,12 +1506,12 @@ where ni.item='DSC_Peer' group by ni.value;"""
 		#style.use('ggplot')
 		fig = plt.figure(num='DSC internal cross ping: package loss rate diagram')
 		
-		ax1 = fig.add_subplot(231)
+		ax1 = fig.add_subplot(2,3,1)
 		line_hk_sg_diagram,  =plt.plot(x_axis_final_hk_dsc, y_axis_final_hk_sg_hk_dsc,color='b', linewidth=1, alpha=1,linestyle = '-')
 		line_hk_ams_diagram, =plt.plot(x_axis_final_hk_dsc, y_axis_final_hk_ams_hk_dsc,color='g', linewidth=1, alpha=1, linestyle = '--')
-		line_hk_frt_diagram, =plt.plot(x_axis_final_hk_dsc, y_axis_final_hk_frt_hk_dsc,color='r', linewidth=1, alpha=1,linestyle = ':')
-		line_hk_chi_diagram, =plt.plot(x_axis_final_hk_dsc, y_axis_final_hk_chi_hk_dsc,color='y', linewidth=1, alpha=1, linestyle = '-.')
-		line_hk_dal_diagram, =plt.plot(x_axis_final_hk_dsc, y_axis_final_hk_dal_hk_dsc,color='purple', linewidth=1, alpha=1,linestyle = '--')
+		line_hk_frt_diagram, =plt.plot(x_axis_final_hk_dsc, y_axis_final_hk_frt_hk_dsc,color='r', linewidth=1, alpha=1,linestyle = '-.')
+		line_hk_chi_diagram, =plt.plot(x_axis_final_hk_dsc, y_axis_final_hk_chi_hk_dsc,color='y', linewidth=1, alpha=1, linestyle = ':')
+		line_hk_dal_diagram, =plt.plot(x_axis_final_hk_dsc, y_axis_final_hk_dal_hk_dsc,color='purple', linewidth=1, alpha=1,linestyle = '-')
 		plt.title('HK DSC: Internal package loss rate', color='g',size=10)
 		plt.legend(handles = [line_hk_sg_diagram, line_hk_ams_diagram,line_hk_frt_diagram,line_hk_chi_diagram,line_hk_dal_diagram], labels = ['HKDSC-SGDSC', 'HKDSC-AMSDSC','HKDSC-FRTDSC', 'HKDSC-CHIDSC','HKDSC-DALDSC'], loc = 'best')
 		#plt.ylim((0, 1.1))
@@ -1418,17 +1520,16 @@ where ni.item='DSC_Peer' group by ni.value;"""
 		def to_percent(temp, position):
 			return '%2.1f'%(100*temp) + '%'
 		plt.gca().yaxis.set_major_formatter(FuncFormatter(to_percent))
-		
 		plt.xlabel(u'Package loss time',fontsize=12)
 		plt.ylabel(u'Package loss rate',fontsize=12)
 		
 
-		ax2 = fig.add_subplot(232)
+		ax2 = fig.add_subplot(2,3,4,sharey=ax1)
 		line_hk_sg_diagram,  =plt.plot(x_axis_final_sg_dsc, y_axis_final_hk_sg_sg_dsc,color='b', linewidth=1, alpha=1,linestyle = '-')
-		line_sg_ams_diagram, =plt.plot(x_axis_final_sg_dsc, y_axis_final_sg_ams_sg_dsc,color='g', linewidth=1, alpha=1, linestyle = '--')
-		line_sg_frt_diagram, =plt.plot(x_axis_final_sg_dsc, y_axis_final_sg_frt_sg_dsc,color='r', linewidth=1, alpha=1,linestyle = ':')
-		line_sg_chi_diagram, =plt.plot(x_axis_final_sg_dsc, y_axis_final_sg_chi_sg_dsc,color='y', linewidth=1, alpha=1, linestyle = '-.')
-		line_sg_dal_diagram, =plt.plot(x_axis_final_sg_dsc, y_axis_final_sg_dal_sg_dsc,color='purple', linewidth=1, alpha=1,linestyle = '--')
+		line_sg_ams_diagram, =plt.plot(x_axis_final_sg_dsc, y_axis_final_sg_ams_sg_dsc,color='k', linewidth=1, alpha=1, linestyle = '--')
+		line_sg_frt_diagram, =plt.plot(x_axis_final_sg_dsc, y_axis_final_sg_frt_sg_dsc,color='c', linewidth=1, alpha=1,linestyle = '-.')
+		line_sg_chi_diagram, =plt.plot(x_axis_final_sg_dsc, y_axis_final_sg_chi_sg_dsc,color='m', linewidth=1, alpha=1, linestyle = ':')
+		line_sg_dal_diagram, =plt.plot(x_axis_final_sg_dsc, y_axis_final_sg_dal_sg_dsc,color='teal', linewidth=1, alpha=1,linestyle = '-')
 		plt.title('SG DSC: Internal package loss rate', color='g',size=10)
 		plt.legend(handles = [line_hk_sg_diagram, line_sg_ams_diagram,line_sg_frt_diagram,line_sg_chi_diagram,line_sg_dal_diagram], labels = ['HKDSC-SGDSC', 'SGDSC-AMSDSC','SGDSC-FRTDSC', 'SGDSC-CHIDSC','SGDSC-DALDSC'], loc = 'best')
 		#plt.ylim((0, 1.1))
@@ -1437,19 +1538,76 @@ where ni.item='DSC_Peer' group by ni.value;"""
 		def to_percent(temp, position):
 			return '%2.1f'%(100*temp) + '%'
 		plt.gca().yaxis.set_major_formatter(FuncFormatter(to_percent))
-		
 		plt.xlabel(u'Package loss time',fontsize=12)
 		plt.ylabel(u'Package loss rate',fontsize=12)
 		
 		
+		ax3 = fig.add_subplot(2,3,2,sharey=ax1)
+		line_hk_ams_diagram,  =plt.plot(x_axis_final_ams_dsc, y_axis_final_hk_ams_ams_dsc,color='g', linewidth=1, alpha=1,linestyle = '--')
+		line_sg_ams_diagram, =plt.plot(x_axis_final_ams_dsc, y_axis_final_sg_ams_ams_dsc,color='k', linewidth=1, alpha=1, linestyle = '--')
+		line_ams_chi_diagram, =plt.plot(x_axis_final_ams_dsc, y_axis_final_ams_chi_ams_dsc,color='tomato', linewidth=1, alpha=1,linestyle = '--')
+		line_ams_dal_diagram, =plt.plot(x_axis_final_ams_dsc, y_axis_final_ams_dal_ams_dsc,color='tan', linewidth=1, alpha=1, linestyle = '-.')
+		line_ams_frt_diagram, =plt.plot(x_axis_final_ams_dsc, y_axis_final_ams_frt_ams_dsc,color='olive', linewidth=1, alpha=1,linestyle = ':')
+		plt.title('AMS DSC: Internal package loss rate', color='g',size=10)
+		plt.legend(handles = [line_hk_ams_diagram, line_sg_ams_diagram,line_ams_chi_diagram,line_ams_dal_diagram,line_ams_frt_diagram], labels = ['HKDSC-AMSDSC', 'SGDSC-AMSDSC','AMSDSC-CHIDSC', 'AMSDSC-DALDSC','AMSDSC-FRTDSC'], loc = 'best')
+		#plt.yticks([0, 0.2,0.4,0.6,0.8,1],['0%','20%','40%','60%','80%','100%'])
+		
+		def to_percent(temp, position):
+			return '%2.1f'%(100*temp) + '%'
+		plt.gca().yaxis.set_major_formatter(FuncFormatter(to_percent))
+		plt.xlabel(u'Package loss time',fontsize=12)
+		plt.ylabel(u'Package loss rate',fontsize=12)
 		
 		
-		
-		
-		
-		
-		#ax3 = fig.add_subplot(233)
+		ax4 = fig.add_subplot(2,3,5,sharey=ax1)
+		line_hk_frt_diagram,  =plt.plot(x_axis_final_frt_dsc, y_axis_final_hk_frt_frt_dsc,color='r', linewidth=1, alpha=1,linestyle = '-.')
+		line_sg_frt_diagram, =plt.plot(x_axis_final_frt_dsc, y_axis_final_sg_frt_frt_dsc,color='c', linewidth=1, alpha=1, linestyle = '-.')
+		line_ams_frt_diagram, =plt.plot(x_axis_final_frt_dsc, y_axis_final_ams_frt_frt_dsc,color='olive', linewidth=1, alpha=1,linestyle = ':')
+		line_frt_chi_diagram, =plt.plot(x_axis_final_frt_dsc, y_axis_final_frt_chi_frt_dsc,color='cyan', linewidth=1, alpha=1, linestyle = '-')
+		line_frt_dal_diagram, =plt.plot(x_axis_final_frt_dsc, y_axis_final_frt_dal_frt_dsc,color='lightgreen', linewidth=1, alpha=1,linestyle = '--')
+		plt.title('FRT DSC: Internal package loss rate', color='g',size=10)
+		plt.legend(handles = [line_hk_frt_diagram, line_sg_frt_diagram,line_ams_frt_diagram,line_frt_chi_diagram,line_frt_dal_diagram], labels = ['HKDSC-FRTDSC', 'SGDSC-FRTDSC','AMSDSC-FRTDSC', 'FRTDSC-CHIDSC','FRTDSC-DALDSC'], loc = 'best')
+		#plt.yticks([0, 0.2,0.4,0.6,0.8,1],['0%','20%','40%','60%','80%','100%'])
 
+		def to_percent(temp, position):
+			return '%2.1f'%(100*temp) + '%'
+		plt.gca().yaxis.set_major_formatter(FuncFormatter(to_percent))
+		plt.xlabel(u'Package loss time',fontsize=12)
+		plt.ylabel(u'Package loss rate',fontsize=12)
+		
+		ax5 = fig.add_subplot(2,3,3,sharey=ax1)
+		line_hk_chi_diagram,  =plt.plot(x_axis_final_chi_dsc, y_axis_final_hk_chi_chi_dsc,color='y', linewidth=1, alpha=1,linestyle = ':')
+		line_sg_chi_diagram, =plt.plot(x_axis_final_chi_dsc, y_axis_final_sg_chi_chi_dsc,color='m', linewidth=1, alpha=1, linestyle = ':')
+		line_ams_chi_diagram, =plt.plot(x_axis_final_chi_dsc, y_axis_final_ams_chi_chi_dsc,color='tomato', linewidth=1, alpha=1,linestyle = '--')
+		line_frt_chi_diagram, =plt.plot(x_axis_final_chi_dsc, y_axis_final_frt_chi_chi_dsc,color='cyan', linewidth=1, alpha=1, linestyle = '-')
+		line_chi_dal_diagram, =plt.plot(x_axis_final_chi_dsc, y_axis_final_chi_dal_chi_dsc,color='pink', linewidth=1, alpha=1,linestyle = '-.')
+		plt.title('CHI DSC: Internal package loss rate', color='g',size=10)
+		plt.legend(handles = [line_hk_chi_diagram, line_sg_chi_diagram,line_ams_chi_diagram,line_frt_chi_diagram,line_chi_dal_diagram], labels = ['HKDSC-CHIDSC', 'SGDSC-CHIDSC','AMSDSC-CHIDSC', 'FRTDSC-CHIDSC','CHIDSC-DALDSC'], loc = 'best')
+		#plt.yticks([0, 0.2,0.4,0.6,0.8,1],['0%','20%','40%','60%','80%','100%'])
+		
+		def to_percent(temp, position):
+			return '%2.1f'%(100*temp) + '%'
+		plt.gca().yaxis.set_major_formatter(FuncFormatter(to_percent))
+		plt.xlabel(u'Package loss time',fontsize=12)
+		plt.ylabel(u'Package loss rate',fontsize=12)
+		
+		
+		ax6 = fig.add_subplot(2,3,6,sharey=ax1)
+		line_hk_dal_diagram,  =plt.plot(x_axis_final_dal_dsc, y_axis_final_hk_dal_dal_dsc,color='purple', linewidth=1, alpha=1,linestyle = '-')
+		line_sg_dal_diagram, =plt.plot(x_axis_final_dal_dsc, y_axis_final_sg_dal_dal_dsc,color='teal', linewidth=1, alpha=1, linestyle = '-')
+		line_ams_dal_diagram, =plt.plot(x_axis_final_dal_dsc, y_axis_final_ams_dal_dal_dsc,color='tan', linewidth=1, alpha=1,linestyle = '-.')
+		line_frt_dal_diagram, =plt.plot(x_axis_final_dal_dsc, y_axis_final_frt_dal_dal_dsc,color='lightgreen', linewidth=1, alpha=1, linestyle = '--')
+		line_chi_dal_diagram, =plt.plot(x_axis_final_dal_dsc, y_axis_final_chi_dal_dal_dsc,color='pink', linewidth=1, alpha=1,linestyle = '-.')
+		plt.title('DAL DSC: Internal package loss rate', color='g',size=10)
+		plt.legend(handles = [line_hk_dal_diagram, line_sg_dal_diagram,line_ams_dal_diagram,line_frt_dal_diagram,line_chi_dal_diagram], labels = ['HKDSC-DALDSC', 'SGDSC-DALDSC','AMSDSC-DALDSC', 'FRTDSC-DADSC','CHIDSC-DALDSC'], loc = 'best')
+		#plt.yticks([0, 0.2,0.4,0.6,0.8,1],['0%','20%','40%','60%','80%','100%'])
+		
+		def to_percent(temp, position):
+			return '%2.1f'%(100*temp) + '%'
+		plt.gca().yaxis.set_major_formatter(FuncFormatter(to_percent))
+		plt.xlabel(u'Package loss time',fontsize=12)
+		plt.ylabel(u'Package loss rate',fontsize=12)
+		
 		
 		ax1.xaxis.set_major_locator(mticker.MaxNLocator(10))
 		for label in ax1.xaxis.get_ticklabels():
@@ -1460,10 +1618,31 @@ where ni.item='DSC_Peer' group by ni.value;"""
 		for label in ax2.xaxis.get_ticklabels():
 			label.set_rotation(30)
 			label.set_horizontalalignment('right')
+			
+		ax3.xaxis.set_major_locator(mticker.MaxNLocator(10))
+		for label in ax3.xaxis.get_ticklabels():
+			label.set_rotation(30)
+			label.set_horizontalalignment('right')
+			
+		ax4.xaxis.set_major_locator(mticker.MaxNLocator(10))
+		for label in ax4.xaxis.get_ticklabels():
+			label.set_rotation(30)
+			label.set_horizontalalignment('right')
+			
+		ax5.xaxis.set_major_locator(mticker.MaxNLocator(10))
+		for label in ax5.xaxis.get_ticklabels():
+			label.set_rotation(30)
+			label.set_horizontalalignment('right')
+			
+		ax6.xaxis.set_major_locator(mticker.MaxNLocator(10))
+		for label in ax6.xaxis.get_ticklabels():
+			label.set_rotation(30)
+			label.set_horizontalalignment('right')
 
 		#ax1.grid(True)
 		#plt.tight_layout()
-		plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.3, hspace=None)
+		#plt.subplots_adjust(left=None, bottom=None, right=None, top=None, wspace=0.3, hspace=0.5)
+		plt.subplots_adjust(left=0.125, bottom=0.1, right=0.9, top=0.9, wspace=0.3, hspace=0.5)
 
 		plt.show()
 
@@ -1670,6 +1849,9 @@ if __name__=="__main__":
 	myWin.update_textEdit_log_name_content_signal.connect(myWin.update_textEdit_log_name_content)
 	myWin.show_download_kpi_file_popup_signal.connect(myWin.show_download_kpi_file_popup)
 	myWin.show_figure_signal.connect(myWin.show_figure)
+	
+	myWin.show_download_kpi_file_failed_popup_signal.connect(myWin.show_download_kpi_file_failed_popup)
+	myWin.update_textEdit_log_name_content_list_signal.connect(myWin.update_textEdit_log_name_content_list)
 	
 	input_alarms=Input_alarms()
 	input_alarms.alarms_inputed_signal.connect(myWin.alarm_content_handler)
