@@ -155,6 +155,17 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
 		
 		self.dlbloginip={"HK DSC":"10.162.28.187","SG DSC":"10.163.28.132","AMS DSC":"10.160.28.221","FRT DSC":"10.161.28.249","CHI DSC":"10.166.28.201","DAL DSC":"10.164.28.190"}
 		
+		#Send mail: Customer name inputed
+		self.comboBox_customer_name_send_mail.activated.connect(self.update_customer_list_sendmail)
+		self.comboBox_customer_name_send_mail.currentIndexChanged.connect(self.update_customer_to_list)
+		
+		self.comboBox_customer_name_maintenance.activated.connect(self.update_customer_list_maintenance)
+		
+		self.pushButton_sendemail_send_mail.clicked.connect(self.send_email_sendmail)
+		self.pushButton_add_maintenance.clicked.connect(self.add_customer_maintenance)
+		
+		self.pushButton_check_maintenance.clicked.connect(self.check_maintenance)
+		
 		global username, password,ccb_info
 	
 	def update_customer_list(self):
@@ -211,8 +222,10 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
 		start_time_show= nowTime_utc.astimezone(timezone(timedelta(hours=-3))).strftime('%Y-%m-%d %H:%M')
 		
 		self.dateTimeEdit_start_time.setDateTime(QDateTime.fromString(start_time_show, 'yyyy-MM-dd hh:mm'))
-		
 		self.dateTimeEdit_end_time.setDateTime(QDateTime.fromString(nowTime, 'yyyy-MM-dd hh:mm'))
+		
+		self.dateTimeEdit_start_time_maintenance.setDateTime(QDateTime.fromString(start_time_show, 'yyyy-MM-dd hh:mm'))
+		self.dateTimeEdit_end_time_maintenance.setDateTime(QDateTime.fromString(nowTime, 'yyyy-MM-dd hh:mm'))
 		
 		#print(username,password)
 		try:
@@ -1051,7 +1064,7 @@ where ni.item='DSC_Peer' group by ni.value;"""
 
 		else:
 			#cmd_start_internal_cross_ping="cd /data2/TMP/tsdss/DSC_Internal_Cross_Ping_Tool;nohup python3 DSC_Internal_Cross_Ping_for_Linux.py "+username+" "+password+" &"
-			cmd_start_internal_cross_ping="nohup python3 /data2/TMP/tsdss/DSC_Internal_Cross_Ping_Tool/DSC_Internal_Cross_Ping_for_Linux.py "+username+" "+password+" &"
+			cmd_start_internal_cross_ping="nohup python3 /data2/TMP/tsdss/DSC_Internal_Cross_Ping_Tool/DSC_Internal_Cross_Ping_for_Linux.py "+username+" "+password+" >/dev/null 2>&1  &"
 			#cmd_start_internal_cross_ping="pwd"
 			print(cmd_start_internal_cross_ping)
 			start_internal_cross_ping_result=ssh_nohup_cmd('10.162.28.185',username,password,cmd_start_internal_cross_ping)
@@ -1645,6 +1658,201 @@ where ni.item='DSC_Peer' group by ni.value;"""
 		plt.subplots_adjust(left=0.125, bottom=0.1, right=0.9, top=0.9, wspace=0.3, hspace=0.5)
 
 		plt.show()
+		
+		
+		
+#********************************************************************************************************
+#********************************    Function: Send Mail     ********************************************
+#********************************************************************************************************
+
+
+	def update_customer_list_sendmail(self):
+		global ccb_info
+		
+		customer_inputted=self.comboBox_customer_name_send_mail.currentText()
+		self.comboBox_customer_name_send_mail.clear ()
+		
+		customer_list=[]
+		try:
+			for row in ccb_info:
+				if customer_inputted.lower() in row["Operator"].lower():
+					if row["Operator"] not in customer_list:
+						customer_list.append(row["Operator"])
+	
+			print(customer_list)
+			self.comboBox_customer_name_send_mail.addItems(customer_list)
+		except:
+			pass
+
+
+	def update_customer_list_maintenance(self):
+		global ccb_info
+		
+		customer_inputted=self.comboBox_customer_name_maintenance.currentText()
+		self.comboBox_customer_name_maintenance.clear ()
+		
+		customer_list=[]
+		try:
+			for row in ccb_info:
+				if customer_inputted.lower() in row["Operator"].lower():
+					if row["Operator"] not in customer_list:
+						customer_list.append(row["Operator"])
+	
+			print(customer_list)
+			self.comboBox_customer_name_maintenance.addItems(customer_list)
+		except:
+			pass
+
+	def update_customer_to_list(self):
+		global ccb_info
+		customer_name=self.comboBox_customer_name_send_mail.currentText()
+		self.lineEdit_send_mail_to.clear ()
+		self.textEdit_mail_body.clear()
+		
+		to_list=""
+		try:
+			for row in ccb_info:
+				if customer_name.lower() == row["Operator"].lower():
+					if row["Customer_Contact"] is not None:
+						to_list=row["Customer_Contact"]
+					else:
+						to_list="Null"
+			print(to_list)
+			self.lineEdit_send_mail_to.setText(to_list)
+			
+			mail_body_temp="Dear " + customer_name + " colleagues,\n\n\n\n\n\n\n\n\n\nBest regards,\nYour Name xxx xxx"
+			self.textEdit_mail_body.setText(mail_body_temp)
+		except:
+			pass
+
+
+	def send_email_sendmail(self):
+
+		Subject=self.lineEdit_send_mail_subject.text()
+		to_list=self.lineEdit_send_mail_to.text()
+		cc_list=self.lineEdit_send_mail_cc.text()
+		email_body=self.textEdit_mail_body.toHtml()
+
+		if to_list=="":
+			QMessageBox.information(self,"Warning",'Please choose "Customer".',QMessageBox.Ok)
+		elif Subject=="":
+			QMessageBox.information(self,"Warning",'Please input "Subject".',QMessageBox.Ok)
+		elif email_body=="":
+			QMessageBox.information(self,"Warning",'There is nothing in your mail body!',QMessageBox.Ok)
+		else:
+			try:
+				if to_list!='Null':
+					sendemail(to_list,cc_list,Subject,email_body)
+			except NameError:
+				pass
+
+
+	def add_customer_maintenance(self):
+		global username, password,ccb_info
+
+		start_datetime_year=self.dateTimeEdit_start_time_maintenance.date().year()
+		end_datetime_year=self.dateTimeEdit_end_time_maintenance.date().year()
+		
+		start_datetime_month=self.add0_datetime(self.dateTimeEdit_start_time_maintenance.date().month())
+		end_datetime_month=self.add0_datetime(self.dateTimeEdit_end_time_maintenance.date().month())
+		
+		
+		start_datetime_day=self.add0_datetime(self.dateTimeEdit_start_time_maintenance.date().day())
+		end_datetime_day=self.add0_datetime(self.dateTimeEdit_end_time_maintenance.date().day())
+		
+		start_datetime_hour=self.add0_datetime(self.dateTimeEdit_start_time_maintenance.time().hour())
+		end_datetime_hour=self.add0_datetime(self.dateTimeEdit_end_time_maintenance.time().hour())
+		
+		start_datetime_min=self.add0_datetime(self.dateTimeEdit_start_time_maintenance.time().minute())
+		end_datetime_min=self.add0_datetime(self.dateTimeEdit_end_time_maintenance.time().minute())
+		
+		#start_date=str(start_datetime_year)+str(start_datetime_month)+str(start_datetime_day)
+		#end_date=str(end_datetime_year)+str(end_datetime_month)+str(end_datetime_day)
+		#print(start_date)
+		#print(end_date)
+		
+		start_datetime=str(start_datetime_year)+str(start_datetime_month)+str(start_datetime_day)+str(start_datetime_hour)+str(start_datetime_min)
+		end_datetime=str(end_datetime_year)+str(end_datetime_month)+str(end_datetime_day)+str(end_datetime_hour)+str(end_datetime_min)
+		
+		#print(start_datetime)
+		#print(end_datetime)
+		
+		customer_name=self.comboBox_customer_name_maintenance.currentText()
+		notes=self.textEdit_maintenance_notes.toPlainText()
+		owner=self.lineEdit_GID.text()
+		
+		maintenance_item=[customer_name,start_datetime,end_datetime,notes,owner]
+		
+		if customer_name=="":
+			QMessageBox.information(self,"Warning",'Please input maintenance "Customer".',QMessageBox.Ok)
+		elif notes=="":
+			QMessageBox.information(self,"Warning",'Please input maintenance "Note".',QMessageBox.Ok)
+		else:
+			print(maintenance_item)
+			
+			cmd='cat /data2/TMP/tsdss/DSC_Send_Mail_Tool/DSC_Maintenance_Record.csv'
+			current_maintenance=ssh_onetime_ping('10.162.28.185',username,password,cmd)
+			print(current_maintenance)
+			
+			if current_maintenance==[]:
+				print('csv file not exist')
+				mtdirectory=os.getcwd()+r'\\file\\maintenance_files\\'
+				if not os.path.exists(mtdirectory):
+					os.makedirs(mtdirectory)
+				
+				with open(mtdirectory+'/DSC_Maintenance_Record.csv', 'a+') as mt_files:
+					writer = csv.writer(mt_files)
+					writer.writerow([maintenance_item[0],maintenance_item[1],maintenance_item[2],maintenance_item[3],maintenance_item[4]])
+				
+				transport = paramiko.Transport('10.162.28.185', 22)
+				transport.connect(username=username, password=password)
+				sftp = paramiko.SFTPClient.from_transport(transport)
+				sftp.put(mtdirectory+'\\DSC_Maintenance_Record.csv','/data2/TMP/tsdss/DSC_Send_Mail_Tool/DSC_Maintenance_Record.csv')
+				print('upload successfully')
+				os.remove(mtdirectory+'\\DSC_Maintenance_Record.csv')
+				QMessageBox.information(self,"Information","Congrats! Add maintenance successfully!",QMessageBox.Ok)
+			else:
+				print('csv file already exist')
+				
+				mtdirectory=os.getcwd()+r'\\file\\maintenance_files\\'
+				if not os.path.exists(mtdirectory):
+					os.makedirs(mtdirectory)
+					
+				transport = paramiko.Transport('10.162.28.185', 22)
+				transport.connect(username=username, password=password)
+				sftp = paramiko.SFTPClient.from_transport(transport)
+				sftp.get('/data2/TMP/tsdss/DSC_Send_Mail_Tool/DSC_Maintenance_Record.csv',mtdirectory+'\\DSC_Maintenance_Record.csv')
+				print('download ok')
+
+				with open(mtdirectory+'/DSC_Maintenance_Record.csv', 'a+') as mt_files:
+					writer = csv.writer(mt_files)
+					writer.writerow([maintenance_item[0],maintenance_item[1],maintenance_item[2],maintenance_item[3],maintenance_item[4]])
+				print('write mt file ok, now start upload')
+				
+				transport = paramiko.Transport('10.162.28.185', 22)
+				transport.connect(username=username, password=password)
+				sftp = paramiko.SFTPClient.from_transport(transport)
+				sftp.put(mtdirectory+'\\DSC_Maintenance_Record.csv','/data2/TMP/tsdss/DSC_Send_Mail_Tool/DSC_Maintenance_Record.csv')
+				print('upload successfully')
+				os.remove(mtdirectory+'\\DSC_Maintenance_Record.csv')
+				QMessageBox.information(self,"Information","Congrats! Maintenance added successfully!",QMessageBox.Ok)
+	
+	def check_maintenance(self):
+		global username, password,ccb_info
+		
+		cmd='cat /data2/TMP/tsdss/DSC_Send_Mail_Tool/DSC_Maintenance_Record.csv'
+		current_maintenance=ssh_onetime_ping('10.162.28.185',username,password,cmd)
+		print(current_maintenance)
+		print(type(current_maintenance))
+		
+		self.textEdit_mail_body.setText('All current maintenance listed here:\n\nCustomer	Start Time	End Time	Notes	Owner\n\n')
+		for item in current_maintenance:
+			if '\n' in item:
+				item=item.split('\n')[0]
+			print(item)
+			current_maintenance_old=self.textEdit_mail_body.toPlainText()
+			current_maintenance_old=current_maintenance_old[:-1]
+			self.textEdit_mail_body.setText(current_maintenance_old+item)
 
 
 """****************************************************************************************************"""
@@ -1665,7 +1873,7 @@ class My_login(QMainWindow, Ui_Dialog_login):
 
 		self.login_signal.emit(self.lineEdit_gib.text(),self.lineEdit_password.text())
 		self.lineEdit_password.clear()
-		self.lineEdit_gib.clear()
+		#self.lineEdit_gib.clear()
 
 	def close_login_window(self,account_result):
 		if account_result == "ok":
