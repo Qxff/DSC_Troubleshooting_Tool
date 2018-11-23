@@ -107,7 +107,7 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
 		self.comboBox_customer_peername.currentIndexChanged.connect(self.get_peer_ip)
 		
 		#Select Customer
-		self.comboBox_customer.addItems(["Customer","Customer 1","Customer 2","Customer 3","Customer 4"])
+		self.comboBox_customer.addItems(["Customer","Customer 1","Customer 2","Customer 3","Customer 4","HK DSC","SG DSC","AMS DSC","FRT DSC","CHI DSC","DAL DSC"])
 		self.comboBox_customer.currentIndexChanged.connect(self.generatecmd)
 		
 		self.lineEdit_customer1pip.textChanged.connect(self.generatecmd)
@@ -288,6 +288,24 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
 				
 		self.Customerpip={"Customer 1":self.lineEdit_customer1pip.text(),"Customer 2":self.lineEdit_customer2pip.text(),"Customer 3":self.lineEdit_customer3pip.text(),"Customer 4":self.lineEdit_customer4pip.text()}
 		self.Customersip={"Customer 1":self.lineEdit_customer1sip.text(),"Customer 2":self.lineEdit_customer2sip.text(),"Customer 3":self.lineEdit_customer3sip.text(),"Customer 4":self.lineEdit_customer4sip.text()}
+		
+		for customer in ["HK DSC","SG DSC","AMS DSC","FRT DSC","CHI DSC","DAL DSC"]:
+			if customer==self.comboBox_customer.currentText():
+				self.lineEdit_customerselectedpip.setText(self.dscpipdic[self.comboBox_customer.currentText()])
+				self.lineEdit_customerselectedsip.setText(self.dscsipdic[self.comboBox_customer.currentText()])
+		
+				netstatcmd=('netstat -an | grep -E "'+self.dscpipdic[self.comboBox_customer.currentText()]+'|'+self.dscsipdic[self.comboBox_customer.currentText()]+'"')
+				print(netstatcmd)
+				if netstatcmd[-2]=="|":
+					netstatcmd=netstatcmd[:-2]+'"'
+					print(netstatcmd)
+				self.lineEdit_netstatcmd.setText(netstatcmd)
+				
+				self.lineEdit_p2ppingcmd.setText('ping -I '+self.lineEdit_dscpip.text()+' '+self.lineEdit_customerselectedpip.text()+' -s1472 -c3')
+				self.lineEdit_p2ptracertcmd.setText('traceroute -s '+ self.lineEdit_dscpip.text()+' '+self.lineEdit_customerselectedpip.text())
+				self.lineEdit_s2spingcmd.setText('ping -I '+self.lineEdit_dscsip.text()+' '+self.lineEdit_customerselectedsip.text()+' -s1472 -c3')
+				self.lineEdit_s2stracertcmd.setText('traceroute -s '+ self.lineEdit_dscsip.text()+' '+self.lineEdit_customerselectedsip.text())
+		
 		for Customer in ["Customer 1","Customer 2","Customer 3","Customer 4"]:
 			if Customer==self.comboBox_customer.currentText():
 				print(Customer)
@@ -327,6 +345,7 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
 			result_final=result_final+result
 		print("result_final:"+result_final)
 		self.textEdit_resultlog.setPlainText(result_log_old+"\n***************************************\n"+cmd+"\n"+result_final)
+		self.textEdit_resultlog.moveCursor(QtGui.QTextCursor.End) 
 
 	def input_alarms(self):
 		input_alarms.show()
@@ -401,117 +420,121 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
 		self.lineEdit_s2stracertcmd_2.setText("")
 		self.textEdit_resultlog_troubleshooting.setText("")
 
-		if alarms_content=="":
-			return 0
-		alarms_dic={}
-		#alarms_list=alarms_content.split('\n')
-		#alarms_list=alarms_content.splitlines()
-		
-		alarms_list=re.split(r'\n',alarms_content) 
-		
-		#print(alarms_list)
-		for item in alarms_list:
-			#if item=="  " or item.strip()==' ':
-			#	alarms_list.remove(item)
-			if item.strip()=="":
-				alarms_list.remove(item)
-		print("Origin alarms list: ")
-		print(alarms_list)
-
-		alarms_amount=len(alarms_list)
-		print('Length of Origin alarms list	')
-		print(alarms_amount)
-		
-		for alarms_index in range(0,alarms_amount):
-			if '|' not in alarms_list[alarms_index]:
-				#alarms_list[alarms_index]=alarms_list[alarms_index].split('   ')
-				alarms_list[alarms_index]=re.split(r'(   |10302|10312)',alarms_list[alarms_index]) 
-
-				while '   ' in alarms_list[alarms_index]:
-					alarms_list[alarms_index].remove('   ')
-				
-				while '' in alarms_list[alarms_index]:
-					alarms_list[alarms_index].remove('')
-				print("Alarm: " + str(alarms_index)+ " in alarms list after split:")
-				print(alarms_list[alarms_index])
-
-				for alarms_content_item in alarms_list[alarms_index]:
-					if '/' in alarms_content_item:
-						alarms_list[alarms_index][0]=alarms_content_item.strip()
-					elif '-gen-dsc-' in alarms_content_item:
-						alarms_list[alarms_index][1]=alarms_content_item.strip()
-					elif '[[AppId' in alarms_content_item or '[16777251' in alarms_content_item:
-						
-						if '[[AppId' in alarms_content_item:
-							realm_before_list=alarms_content_item.strip().replace('[[AppId','((( ').split(' ')
-						if '[16777251' in alarms_content_item:
-							realm_before_list=alarms_content_item.strip().strip().replace('[16777251','((( ').split(' ')
+		try:
+			if alarms_content=="":
+				return 0
+			alarms_dic={}
+			#alarms_list=alarms_content.split('\n')
+			#alarms_list=alarms_content.splitlines()
+			
+			alarms_list=re.split(r'\n',alarms_content) 
+			
+			#print(alarms_list)
+			for item in alarms_list:
+				#if item=="  " or item.strip()==' ':
+				#	alarms_list.remove(item)
+				if item.strip()=="":
+					alarms_list.remove(item)
+			print("Origin alarms list: ")
+			print(alarms_list)
+	
+			alarms_amount=len(alarms_list)
+			print('Length of Origin alarms list	')
+			print(alarms_amount)
+			
+			for alarms_index in range(0,alarms_amount):
+				if '|' not in alarms_list[alarms_index]:
+					#alarms_list[alarms_index]=alarms_list[alarms_index].split('   ')
+					alarms_list[alarms_index]=re.split(r'(   |10302|10312)',alarms_list[alarms_index]) 
+	
+					while '   ' in alarms_list[alarms_index]:
+						alarms_list[alarms_index].remove('   ')
+					
+					while '' in alarms_list[alarms_index]:
+						alarms_list[alarms_index].remove('')
+					print("Alarm: " + str(alarms_index)+ " in alarms list after split:")
+					print(alarms_list[alarms_index])
+	
+					for alarms_content_item in alarms_list[alarms_index]:
+						if '/' in alarms_content_item:
+							alarms_list[alarms_index][0]=alarms_content_item.strip()
+						elif '-gen-dsc-' in alarms_content_item:
+							alarms_list[alarms_index][1]=alarms_content_item.strip()
+						elif '[[AppId' in alarms_content_item or '[16777251' in alarms_content_item:
 							
-						print(realm_before_list)
-						for alarms_items in realm_before_list:
-							if '(((' in alarms_items:
-								realm_alarm=alarms_items[:-3]
-							#if alarms_items=="Realm":
-							#	realm_alarm=realm_before_list[realm_before_list.index('Realm')+1]
-							#elif  alarms_items=="DSC-APP":
-							#	realm_alarm=realm_before_list[realm_before_list.index('DSC-APP')+1]
-						print('\n Realm in alarms:')
-						print(realm_alarm)
-						alarms_list[alarms_index][4]=realm_alarm
-						alarms_list[alarms_index][2]="10312"
-						alarms_list[alarms_index][3]="The last active peer in this realm is now disconnected"
-					elif '([SCTP]' in alarms_content_item:
+							if '[[AppId' in alarms_content_item:
+								realm_before_list=alarms_content_item.strip().replace('[[AppId','((( ').split(' ')
+							if '[16777251' in alarms_content_item:
+								realm_before_list=alarms_content_item.strip().strip().replace('[16777251','((( ').split(' ')
+								
+							print(realm_before_list)
+							for alarms_items in realm_before_list:
+								if '(((' in alarms_items:
+									realm_alarm=alarms_items[:-3]
+								#if alarms_items=="Realm":
+								#	realm_alarm=realm_before_list[realm_before_list.index('Realm')+1]
+								#elif  alarms_items=="DSC-APP":
+								#	realm_alarm=realm_before_list[realm_before_list.index('DSC-APP')+1]
+							print('\n Realm in alarms:')
+							print(realm_alarm)
+							alarms_list[alarms_index][4]=realm_alarm
+							alarms_list[alarms_index][2]="10312"
+							alarms_list[alarms_index][3]="The last active peer in this realm is now disconnected"
+						elif '([SCTP]' in alarms_content_item:
+	
+							peer_before_list=alarms_content_item.strip().replace('[',' ').split(' ')
+							for alarms_items in peer_before_list:
+								if '(' in alarms_items:
+									peer_alarm=alarms_items[:-1]
+							print('\n Peer in alarms:')
+							print(peer_alarm)
+							alarms_list[alarms_index][4]=peer_alarm
+							alarms_list[alarms_index][2]="10302"
+							alarms_list[alarms_index][3]="The peer is disconnected"
+							
+				elif '|' in alarms_list[alarms_index]:
+					print("ok")
+					alarms_list[alarms_index]=alarms_list[alarms_index].split('|')
+					while '' in alarms_list[alarms_index]:
+						alarms_list[alarms_index].remove('')
+					#print(alarms_list[alarms_index])
+					for alarms_content_item in alarms_list[alarms_index]:
+						if '/' in alarms_content_item:
+							alarms_list[alarms_index][0]=alarms_content_item.strip()
+						elif '-gen-dsc-' in alarms_content_item:
+							alarms_list[alarms_index][1]=alarms_content_item.strip()
+						elif '10312' in alarms_content_item:
+							realm_before_list=alarms_content_item.strip().replace('[',' ').split(' ')
+							realm_alarm=realm_before_list[realm_before_list.index('Realm')+1]
+							print(realm_alarm)
+							alarms_list[alarms_index][4]=realm_alarm
+							alarms_list[alarms_index][2]="10312"
+							alarms_list[alarms_index][3]="The last active peer in this realm is now disconnected"
+						elif '10302' in alarms_content_item:
+							peer_before_list=alarms_content_item.strip().replace('[',' ').split(' ')
+							for alarms_items in peer_before_list:
+								if '(' in alarms_items:
+									peer_alarm=alarms_items[:-1]
+									print(peer_alarm)
+							alarms_list[alarms_index][4]=peer_alarm
+							alarms_list[alarms_index][2]="10302"
+							alarms_list[alarms_index][3]="The peer is disconnected"
+	
+				alarms_dic[alarms_index]=alarms_list[alarms_index][0:5]
+			print("Origin_alarms_dic_before_remove_duplication:")
+			print(alarms_dic)
 
-						peer_before_list=alarms_content_item.strip().replace('[',' ').split(' ')
-						for alarms_items in peer_before_list:
-							if '(' in alarms_items:
-								peer_alarm=alarms_items[:-1]
-						print('\n Peer in alarms:')
-						print(peer_alarm)
-						alarms_list[alarms_index][4]=peer_alarm
-						alarms_list[alarms_index][2]="10302"
-						alarms_list[alarms_index][3]="The peer is disconnected"
-						
-			elif '|' in alarms_list[alarms_index]:
-				print("ok")
-				alarms_list[alarms_index]=alarms_list[alarms_index].split('|')
-				while '' in alarms_list[alarms_index]:
-					alarms_list[alarms_index].remove('')
-				#print(alarms_list[alarms_index])
-				for alarms_content_item in alarms_list[alarms_index]:
-					if '/' in alarms_content_item:
-						alarms_list[alarms_index][0]=alarms_content_item.strip()
-					elif '-gen-dsc-' in alarms_content_item:
-						alarms_list[alarms_index][1]=alarms_content_item.strip()
-					elif '10312' in alarms_content_item:
-						realm_before_list=alarms_content_item.strip().replace('[',' ').split(' ')
-						realm_alarm=realm_before_list[realm_before_list.index('Realm')+1]
-						print(realm_alarm)
-						alarms_list[alarms_index][4]=realm_alarm
-						alarms_list[alarms_index][2]="10312"
-						alarms_list[alarms_index][3]="The last active peer in this realm is now disconnected"
-					elif '10302' in alarms_content_item:
-						peer_before_list=alarms_content_item.strip().replace('[',' ').split(' ')
-						for alarms_items in peer_before_list:
-							if '(' in alarms_items:
-								peer_alarm=alarms_items[:-1]
-								print(peer_alarm)
-						alarms_list[alarms_index][4]=peer_alarm
-						alarms_list[alarms_index][2]="10302"
-						alarms_list[alarms_index][3]="The peer is disconnected"
-
-			alarms_dic[alarms_index]=alarms_list[alarms_index][0:5]
-		print("Origin_alarms_dic_before_remove_duplication:")
-		print(alarms_dic)
-
-		alarms_dic_final=self.dic_remove_duplication(alarms_dic)
-		print("Final alarms dic after remove duplication: ")
-		print(alarms_dic_final)
 		
-		alarm_list_cmobo=[]
-		for i in range(1,len(alarms_dic_final)+1):
-			alarm_list_cmobo.append("Alarm "+str(i))
-		self.comboBox_alarm_list.addItems(alarm_list_cmobo)
+			alarms_dic_final=self.dic_remove_duplication(alarms_dic)
+			print("Final alarms dic after remove duplication: ")
+			print(alarms_dic_final)
+			
+			alarm_list_cmobo=[]
+			for i in range(1,len(alarms_dic_final)+1):
+				alarm_list_cmobo.append("Alarm "+str(i))
+			self.comboBox_alarm_list.addItems(alarm_list_cmobo)
+		except:
+			QMessageBox.information(self,"Warning","Alarm format not supported! \nPlease check again or contact 'Insight Tailor Team!'",QMessageBox.Ok)
 
 	def generate_alarms(self):
 		global alarms_dic_final,customer_email_list,customer_nodes,ccb_info
@@ -686,6 +709,7 @@ where ni.item='DSC_Peer' group by ni.value;"""
 					result_final=result_final+result
 				print("result_final:"+result_final)
 				self.textEdit_resultlog_troubleshooting.setPlainText(result_log_old+"\n***************************************\n"+cmd+"\n"+result_final)
+				self.textEdit_resultlog_troubleshooting.moveCursor(QtGui.QTextCursor.End) 
 		
 		for sender_name in ['Show route: DSC PIP','Show route: Customer PIP']:
 			if sender_name==sender.text():
@@ -695,42 +719,46 @@ where ni.item='DSC_Peer' group by ni.value;"""
 				result_final=results
 				print(result_final)
 				self.textEdit_resultlog_troubleshooting.setPlainText(result_log_old+"\n***************************************\n"+result_final)
+				self.textEdit_resultlog_troubleshooting.moveCursor(QtGui.QTextCursor.End) 
 	
 	def send_email_for_Null(self):
 		global customer_email_list,customer_nodes
 		self.syniverse_peer_dic={'HK DSC':'hkg-01.dra.ipx.syniverse.3gppnetwork.org','SG DSC':'sng-01.dra.ipx.syniverse.3gppnetwork.org','AMS DSC':'ams-01.dra.ipx.syniverse.3gppnetwork.org',
 		'FRT DSC':'frt-01.dra.ipx.syniverse.3gppnetwork.org','CHI DSC':'chi-01.dra.ipx.syniverse.3gppnetwork.org', 'DAL DSC':'dal-01.dra.ipx.syniverse.3gppnetwork.org','Null':''}
 		print("Trigger send email for Null")
-		if customer_email_list=="Null":
-			customer_email_list="DSS_Route_Provision@syniverse.com;wind.wang@syniverse.com;joe.mercado@syniverse.com"
-			Subject="Can't find the peer/customer contact in CCB for 10302/10312 alarms"
-			email_body='''<html><body>
-			<p style='font-family:Arial;font-size:13;color:black'>
-			Dear DSS team,<br/><br/>
-			Greeting from TTAC!<br/><br/> 
-			We detect the customer node/realm in 10302/10312 alarms:  <br/>
-			<strong><font color="#0066CC">customer_nodes<br/><br/> </font></strong>
-			Disconnect with Syniverse diameter node: <br/>
-			<strong><font color="#0066CC">Syniverse_peer1<br/></font></strong>
-			<strong><font color="#0066CC">Syniverse_peer2<br/><br/></font></strong>
-			1. Prilimary troubleshooting on IPX transport shows it is not a transport problem. <br/>
-			2. Please help check the peer/realm and contact with customer.<br/><br/>
-			<strong>Logs:<br/></strong>
-			<i>ping_tracert_logs</i><br/><br/>
-			Best regards,<br/>
-			<Strong>Syniverse IPX Network Team<br/></Strong>
-			</p>
-			</body></html>'''
-			logs_for_html=html_line_break(self.textEdit_resultlog_troubleshooting.toPlainText())
-			email_body=email_body.replace('customer_nodes',self.lineEdit_peer_name.text())
-			email_body=email_body.replace('ping_tracert_logs',logs_for_html)
-			
-			for dsc_name in ["HK DSC","SG DSC","AMS DSC","FRT DSC","CHI DSC","DAL DSC",'Null']:
-				if dsc_name==self.lineEdit_connected_dsc.text():
-					email_body=email_body.replace('Syniverse_peer1',self.syniverse_peer_dic[dsc_name])
-			for dsc_name in ["HK DSC","SG DSC","AMS DSC","FRT DSC","CHI DSC","DAL DSC",'Null']:
-				if dsc_name==self.lineEdit_connected_dsc_2.text():
-					email_body=email_body.replace('Syniverse_peer2',self.syniverse_peer_dic[dsc_name])
+		try:
+			if customer_email_list=="Null":
+				customer_email_list="DSS_Route_Provision@syniverse.com;wind.wang@syniverse.com;joe.mercado@syniverse.com"
+				Subject="Can't find the peer/customer contact in CCB for 10302/10312 alarms"
+				email_body='''<html><body>
+				<p style='font-family:Arial;font-size:13;color:black'>
+				Dear DSS team,<br/><br/>
+				Greeting from TTAC!<br/><br/> 
+				We detect the customer node/realm in 10302/10312 alarms:  <br/>
+				<strong><font color="#0066CC">customer_nodes<br/><br/> </font></strong>
+				Disconnect with Syniverse diameter node: <br/>
+				<strong><font color="#0066CC">Syniverse_peer1<br/></font></strong>
+				<strong><font color="#0066CC">Syniverse_peer2<br/><br/></font></strong>
+				1. Prilimary troubleshooting on IPX transport shows it is not a transport problem. <br/>
+				2. Please help check the peer/realm and contact with customer.<br/><br/>
+				<strong>Logs:<br/></strong>
+				<i>ping_tracert_logs</i><br/><br/>
+				Best regards,<br/>
+				<Strong>Syniverse IPX Network Team<br/></Strong>
+				</p>
+				</body></html>'''
+				logs_for_html=html_line_break(self.textEdit_resultlog_troubleshooting.toPlainText())
+				email_body=email_body.replace('customer_nodes',self.lineEdit_peer_name.text())
+				email_body=email_body.replace('ping_tracert_logs',logs_for_html)
+				
+				for dsc_name in ["HK DSC","SG DSC","AMS DSC","FRT DSC","CHI DSC","DAL DSC",'Null']:
+					if dsc_name==self.lineEdit_connected_dsc.text():
+						email_body=email_body.replace('Syniverse_peer1',self.syniverse_peer_dic[dsc_name])
+				for dsc_name in ["HK DSC","SG DSC","AMS DSC","FRT DSC","CHI DSC","DAL DSC",'Null']:
+					if dsc_name==self.lineEdit_connected_dsc_2.text():
+						email_body=email_body.replace('Syniverse_peer2',self.syniverse_peer_dic[dsc_name])
+		except:
+			pass
 
 		try:
 			sendemail(customer_email_list,'DSS_Route_Provision@syniverse.com;TTAC@syniverse.com',Subject,email_body)
@@ -839,13 +867,51 @@ where ni.item='DSC_Peer' group by ni.value;"""
 				if dsc_name==self.lineEdit_connected_dsc_2.text():
 					email_body=email_body.replace('Syniverse_peer2',self.syniverse_peer_dic[dsc_name])
 		
+		nowTime_y=datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%Y')
+		nowTime_m=datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%m')
+		nowTime_d=datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%d')
+		nowTime_h=datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%H')
+		nowTime_M=datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%M')
 		
+		NowTime=int(nowTime_y+nowTime_m+nowTime_d+nowTime_h+nowTime_M)
+		print("NowTime:")
+		print(NowTime)
+
 		try:
-			if customer_email_list!='Null':
-				sendemail(customer_email_list,'DSS_Route_Provision@syniverse.com;TTAC@syniverse.com',Subject,email_body)
+			if self.lineEdit_customer.text()=="":
+				return 0
+			else:
+				cmd='cat /data2/TMP/tsdss/DSC_Send_Mail_Tool/DSC_Maintenance_Record.csv'
+				current_maintenance=ssh_onetime_ping('10.162.28.185',username,password,cmd)
+				print(current_maintenance)
+				for item in current_maintenance:
+					print(item)
+					if item.split(',')[0]==self.lineEdit_customer.text() and int(item.split(',')[1])<=NowTime<=int(item.split(',')[2]):
+						
+						maintenance_customer=item.split(',')[0]
+						maintenance_starttime=item.split(',')[1]
+						maintenance_endtime=item.split(',')[2]
+						maintenance_owner=item.split(',')[-1]
+						
+						note_temp=item.split(',')[3:-1]
+						note_final=""
+						for item in note_temp:
+							note_final+=item
+						
+						maintenance_note=note_final
+						#maintenance_note=re.split(r[maintenance_customer or maintenance_starttime or maintenance_endtime or maintenance_owner],item)
+						print('maintenance_note:')
+						print(maintenance_note)
+	
+						maintenance_info='Customer: '+maintenance_customer+'\nStart Time: '+maintenance_starttime+'\nEnd Time: '+maintenance_endtime+'\nNote: '+maintenance_note+'\nOwner: '+maintenance_owner
+						QMessageBox.information(self,"Warning","There's maintenance ongoing for "+self.lineEdit_customer.text()+"!\nPlease don't send mail to customer.\n\nMaintenance detials:\n"+maintenance_info,QMessageBox.Ok)
+						return 0
+				QMessageBox.information(self,"Information","No maintenance ongoing for "+self.lineEdit_customer.text()+', click "OK" to send mail.',QMessageBox.Ok)
+				if customer_email_list!='Null':
+					sendemail(customer_email_list,'DSS_Route_Provision@syniverse.com;TTAC@syniverse.com',Subject,email_body)
 		except NameError:
 			pass
-			
+
 
 #********************************************************************************************************
 #********************************    Function: 7*24 Ping     ********************************************
@@ -1732,6 +1798,21 @@ where ni.item='DSC_Peer' group by ni.value;"""
 		to_list=self.lineEdit_send_mail_to.text()
 		cc_list=self.lineEdit_send_mail_cc.text()
 		email_body=self.textEdit_mail_body.toHtml()
+		
+		nowTime_y=datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%Y')
+		#nowTime_m=self.add0_datetime(datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%m'))
+		#nowTime_d=self.add0_datetime(datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%d'))
+		#nowTime_h=self.add0_datetime(datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%H'))
+		#nowTime_M=self.add0_datetime(datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%M'))
+		
+		nowTime_m=datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%m')
+		nowTime_d=datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%d')
+		nowTime_h=datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%H')
+		nowTime_M=datetime.utcnow().replace(tzinfo=timezone.utc).strftime('%M')
+		
+		NowTime=int(nowTime_y+nowTime_m+nowTime_d+nowTime_h+nowTime_M)
+		print("NowTime:")
+		print(NowTime)
 
 		if to_list=="":
 			QMessageBox.information(self,"Warning",'Please choose "Customer".',QMessageBox.Ok)
@@ -1742,6 +1823,32 @@ where ni.item='DSC_Peer' group by ni.value;"""
 		else:
 			try:
 				if to_list!='Null':
+					cmd='cat /data2/TMP/tsdss/DSC_Send_Mail_Tool/DSC_Maintenance_Record.csv'
+					current_maintenance=ssh_onetime_ping('10.162.28.185',username,password,cmd)
+					print(current_maintenance)
+					for item in current_maintenance:
+						print(item)
+						if item.split(',')[0]==self.comboBox_customer_name_send_mail.currentText() and int(item.split(',')[1])<=NowTime<=int(item.split(',')[2]):
+							
+							maintenance_customer=item.split(',')[0]
+							maintenance_starttime=item.split(',')[1]
+							maintenance_endtime=item.split(',')[2]
+							maintenance_owner=item.split(',')[-1]
+							
+							note_temp=item.split(',')[3:-1]
+							note_final=""
+							for item in note_temp:
+								note_final+=item
+							
+							maintenance_note=note_final
+							#maintenance_note=re.split(r[maintenance_customer or maintenance_starttime or maintenance_endtime or maintenance_owner],item)
+							print('maintenance_note:')
+							print(maintenance_note)
+
+							maintenance_info='Customer: '+maintenance_customer+'\nStart Time: '+maintenance_starttime+'\nEnd Time: '+maintenance_endtime+'\nNote: '+maintenance_note+'\nOwner: '+maintenance_owner
+							QMessageBox.information(self,"Warning","There's maintenance ongoing for "+self.comboBox_customer_name_send_mail.currentText()+"!\nPlease don't send mail to customer.\n\nMaintenance detials:\n"+maintenance_info,QMessageBox.Ok)
+							return 0
+					QMessageBox.information(self,"Information","No maintenance ongoing for "+self.comboBox_customer_name_send_mail.currentText()+', click "OK" to send mail.',QMessageBox.Ok)
 					sendemail(to_list,cc_list,Subject,email_body)
 			except NameError:
 				pass

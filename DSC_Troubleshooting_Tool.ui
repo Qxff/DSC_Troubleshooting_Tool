@@ -2637,7 +2637,7 @@ font: 75 12pt &quot;Sitka Small&quot;;</string>
          </property>
          <property name="dateTime">
           <datetime>
-           <hour>8</hour>
+           <hour>0</hour>
            <minute>0</minute>
            <second>0</second>
            <year>2018</year>
@@ -2654,7 +2654,7 @@ font: 75 12pt &quot;Sitka Small&quot;;</string>
          </property>
          <property name="minimumDateTime">
           <datetime>
-           <hour>8</hour>
+           <hour>0</hour>
            <minute>0</minute>
            <second>0</second>
            <year>2018</year>
@@ -2775,7 +2775,7 @@ font: 75 12pt &quot;Sitka Small&quot;;</string>
          </property>
          <property name="dateTime">
           <datetime>
-           <hour>8</hour>
+           <hour>0</hour>
            <minute>0</minute>
            <second>0</second>
            <year>2018</year>
@@ -2792,7 +2792,7 @@ font: 75 12pt &quot;Sitka Small&quot;;</string>
          </property>
          <property name="minimumDateTime">
           <datetime>
-           <hour>8</hour>
+           <hour>0</hour>
            <minute>0</minute>
            <second>0</second>
            <year>2018</year>
@@ -3194,29 +3194,29 @@ p, li { white-space: pre-wrap; }
          </property>
          <property name="dateTime">
           <datetime>
-           <hour>0</hour>
+           <hour>16</hour>
            <minute>0</minute>
            <second>0</second>
            <year>2018</year>
            <month>9</month>
-           <day>28</day>
+           <day>27</day>
           </datetime>
          </property>
          <property name="date">
           <date>
            <year>2018</year>
            <month>9</month>
-           <day>28</day>
+           <day>27</day>
           </date>
          </property>
          <property name="minimumDateTime">
           <datetime>
-           <hour>0</hour>
+           <hour>16</hour>
            <minute>0</minute>
            <second>0</second>
            <year>2018</year>
            <month>1</month>
-           <day>6</day>
+           <day>5</day>
           </datetime>
          </property>
          <property name="currentSection">
@@ -3262,29 +3262,29 @@ p, li { white-space: pre-wrap; }
          </property>
          <property name="dateTime">
           <datetime>
-           <hour>0</hour>
+           <hour>16</hour>
            <minute>0</minute>
            <second>0</second>
            <year>2018</year>
            <month>9</month>
-           <day>28</day>
+           <day>27</day>
           </datetime>
          </property>
          <property name="date">
           <date>
            <year>2018</year>
            <month>9</month>
-           <day>28</day>
+           <day>27</day>
           </date>
          </property>
          <property name="minimumDateTime">
           <datetime>
-           <hour>0</hour>
+           <hour>16</hour>
            <minute>0</minute>
            <second>0</second>
            <year>2018</year>
            <month>1</month>
-           <day>6</day>
+           <day>5</day>
           </datetime>
          </property>
          <property name="currentSection">
@@ -4129,7 +4129,7 @@ p, li { white-space: pre-wrap; }
      </rect>
     </property>
     <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Product of Syniverse Insight Tailor Team. Version: 3.1, 2018-11-20&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#0bf4cd;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Product of Syniverse Insight Tailor Team. Version: 3.1, 2018-11-21&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#0bf4cd;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_34">
