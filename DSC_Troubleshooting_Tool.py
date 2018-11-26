@@ -1916,6 +1916,10 @@ where ni.item='DSC_Peer' group by ni.value;"""
 				sftp = paramiko.SFTPClient.from_transport(transport)
 				sftp.put(mtdirectory+'\\DSC_Maintenance_Record.csv','/data2/TMP/tsdss/DSC_Send_Mail_Tool/DSC_Maintenance_Record.csv')
 				print('upload successfully')
+				
+				cmd='chmod 777 /data2/TMP/tsdss/DSC_Send_Mail_Tool/DSC_Maintenance_Record.csv'
+				ssh_onetime_ping('10.162.28.185',username,password,cmd)
+				
 				os.remove(mtdirectory+'\\DSC_Maintenance_Record.csv')
 				QMessageBox.information(self,"Information","Congrats! Add maintenance successfully!",QMessageBox.Ok)
 			else:
@@ -1924,7 +1928,7 @@ where ni.item='DSC_Peer' group by ni.value;"""
 				mtdirectory=os.getcwd()+r'\\file\\maintenance_files\\'
 				if not os.path.exists(mtdirectory):
 					os.makedirs(mtdirectory)
-					
+				
 				transport = paramiko.Transport('10.162.28.185', 22)
 				transport.connect(username=username, password=password)
 				sftp = paramiko.SFTPClient.from_transport(transport)
@@ -1941,6 +1945,10 @@ where ni.item='DSC_Peer' group by ni.value;"""
 				sftp = paramiko.SFTPClient.from_transport(transport)
 				sftp.put(mtdirectory+'\\DSC_Maintenance_Record.csv','/data2/TMP/tsdss/DSC_Send_Mail_Tool/DSC_Maintenance_Record.csv')
 				print('upload successfully')
+				
+				cmd='chmod 777 /data2/TMP/tsdss/DSC_Send_Mail_Tool/DSC_Maintenance_Record.csv'
+				ssh_onetime_ping('10.162.28.185',username,password,cmd)
+				
 				os.remove(mtdirectory+'\\DSC_Maintenance_Record.csv')
 				QMessageBox.information(self,"Information","Congrats! Maintenance added successfully!",QMessageBox.Ok)
 	
