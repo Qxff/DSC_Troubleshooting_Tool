@@ -279,7 +279,7 @@
      <enum>QTabWidget::Rounded</enum>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>1</number>
     </property>
     <property name="elideMode">
      <enum>Qt::ElideNone</enum>
@@ -1285,7 +1285,7 @@ p, li { white-space: pre-wrap; }
         <x>520</x>
         <y>40</y>
         <width>761</width>
-        <height>491</height>
+        <height>341</height>
        </rect>
       </property>
       <property name="palette">
@@ -1933,6 +1933,73 @@ p, li { white-space: pre-wrap; }
         </widget>
        </item>
       </layout>
+     </widget>
+     <widget class="Line" name="line_14">
+      <property name="geometry">
+       <rect>
+        <x>520</x>
+        <y>400</y>
+        <width>761</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+     <widget class="Line" name="line_15">
+      <property name="geometry">
+       <rect>
+        <x>511</x>
+        <y>408</y>
+        <width>20</width>
+        <height>121</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_43">
+      <property name="geometry">
+       <rect>
+        <x>540</x>
+        <y>420</y>
+        <width>371</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>600</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt; font-weight:600; color:#ff0000;&quot;&gt;Realtime &lt;/span&gt;&lt;span style=&quot; font-size:12pt; font-weight:600; color:#00aa35;&quot;&gt;monitoring of DSC Inter-network:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_51">
+      <property name="geometry">
+       <rect>
+        <x>540</x>
+        <y>460</y>
+        <width>441</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>600</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://dal-roaming-nms.syniverse.com/roaming/dsc?a=browse&amp;amp;e=now&amp;amp;focus=&amp;amp;s=e-12h&amp;amp;dv=&amp;amp;bv=&amp;amp;sv=&amp;amp;ngf=&amp;amp;pr=dscInterNetworkPacketLossRate&amp;amp;search=&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;LightNMS: Realtime monitoring of DSC Inter-network (Click here)&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="openExternalLinks">
+       <bool>true</bool>
+      </property>
      </widget>
     </widget>
     <widget class="QWidget" name="tab">
@@ -2637,7 +2704,7 @@ font: 75 12pt &quot;Sitka Small&quot;;</string>
          </property>
          <property name="dateTime">
           <datetime>
-           <hour>16</hour>
+           <hour>8</hour>
            <minute>0</minute>
            <second>0</second>
            <year>2018</year>
@@ -2654,7 +2721,7 @@ font: 75 12pt &quot;Sitka Small&quot;;</string>
          </property>
          <property name="minimumDateTime">
           <datetime>
-           <hour>16</hour>
+           <hour>8</hour>
            <minute>0</minute>
            <second>0</second>
            <year>2018</year>
@@ -2775,7 +2842,7 @@ font: 75 12pt &quot;Sitka Small&quot;;</string>
          </property>
          <property name="dateTime">
           <datetime>
-           <hour>16</hour>
+           <hour>8</hour>
            <minute>0</minute>
            <second>0</second>
            <year>2018</year>
@@ -2792,7 +2859,7 @@ font: 75 12pt &quot;Sitka Small&quot;;</string>
          </property>
          <property name="minimumDateTime">
           <datetime>
-           <hour>16</hour>
+           <hour>8</hour>
            <minute>0</minute>
            <second>0</second>
            <year>2018</year>
@@ -3194,7 +3261,7 @@ p, li { white-space: pre-wrap; }
          </property>
          <property name="dateTime">
           <datetime>
-           <hour>8</hour>
+           <hour>0</hour>
            <minute>0</minute>
            <second>0</second>
            <year>2018</year>
@@ -3211,7 +3278,7 @@ p, li { white-space: pre-wrap; }
          </property>
          <property name="minimumDateTime">
           <datetime>
-           <hour>8</hour>
+           <hour>0</hour>
            <minute>0</minute>
            <second>0</second>
            <year>2018</year>
@@ -3262,7 +3329,7 @@ p, li { white-space: pre-wrap; }
          </property>
          <property name="dateTime">
           <datetime>
-           <hour>8</hour>
+           <hour>0</hour>
            <minute>0</minute>
            <second>0</second>
            <year>2018</year>
@@ -3279,7 +3346,7 @@ p, li { white-space: pre-wrap; }
          </property>
          <property name="minimumDateTime">
           <datetime>
-           <hour>8</hour>
+           <hour>0</hour>
            <minute>0</minute>
            <second>0</second>
            <year>2018</year>
@@ -4129,7 +4196,7 @@ p, li { white-space: pre-wrap; }
      </rect>
     </property>
     <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Product of Syniverse Insight Tailor Team. Version: 3.2, 2018-11-23&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#0bf4cd;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Product of Syniverse Insight Tailor Team. Version: 3.3, 2018-11-29&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#0bf4cd;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_34">

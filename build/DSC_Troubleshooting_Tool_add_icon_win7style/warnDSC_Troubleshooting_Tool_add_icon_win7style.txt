@@ -8,7 +8,7 @@ missing module named multiprocessing.get_start_method - imported by multiprocess
 missing module named multiprocessing.SimpleQueue - imported by multiprocessing, concurrent.futures.process
 missing module named 'win32com.gen_py' - imported by win32com, c:\users\g800472\appdata\local\programs\python\python36-32\lib\site-packages\PyInstaller\loader\rthooks\pyi_rth_win32comgenpy.py
 missing module named pyimod03_importers - imported by c:\users\g800472\appdata\local\programs\python\python36-32\lib\site-packages\PyInstaller\loader\rthooks\pyi_rth_pkgres.py
-missing module named 'pkg_resources.extern.pyparsing' - imported by pkg_resources._vendor.packaging.markers, pkg_resources._vendor.packaging.requirements
+missing module named 'pkg_resources.extern.pyparsing' - imported by pkg_resources._vendor.packaging.requirements, pkg_resources._vendor.packaging.markers
 missing module named StringIO - imported by six, urllib3.packages.six, requests.compat, numpy.lib.utils, numpy.testing._private.utils, numpy.lib.format, pkg_resources._vendor.six
 missing module named 'com.sun' - imported by pkg_resources._vendor.appdirs
 missing module named com - imported by pkg_resources._vendor.appdirs
@@ -22,7 +22,7 @@ missing module named pkg_resources.extern.six - imported by pkg_resources.extern
 missing module named resource - imported by posix, ptyprocess.ptyprocess, C:\Users\g800472\Desktop\Python\DSS_tools\DSC_Troubleshooting_Tool\DSC_Troubleshooting_Tool.py
 missing module named posix - imported by os, C:\Users\g800472\Desktop\Python\DSS_tools\DSC_Troubleshooting_Tool\DSC_Troubleshooting_Tool.py
 missing module named _posixsubprocess - imported by subprocess, multiprocessing.util, C:\Users\g800472\Desktop\Python\DSS_tools\DSC_Troubleshooting_Tool\DSC_Troubleshooting_Tool.py
-missing module named 'org.python' - imported by pickle, setuptools.sandbox, C:\Users\g800472\Desktop\Python\DSS_tools\DSC_Troubleshooting_Tool\DSC_Troubleshooting_Tool.py, xml.sax
+missing module named org - imported by pickle, C:\Users\g800472\Desktop\Python\DSS_tools\DSC_Troubleshooting_Tool\DSC_Troubleshooting_Tool.py
 missing module named readline - imported by cmd, code, pdb, C:\Users\g800472\Desktop\Python\DSS_tools\DSC_Troubleshooting_Tool\DSC_Troubleshooting_Tool.py
 excluded module named _frozen_importlib - imported by importlib, importlib.abc, C:\Users\g800472\Desktop\Python\DSS_tools\DSC_Troubleshooting_Tool\DSC_Troubleshooting_Tool.py
 missing module named _frozen_importlib_external - imported by importlib._bootstrap, importlib, importlib.abc, C:\Users\g800472\Desktop\Python\DSS_tools\DSC_Troubleshooting_Tool\DSC_Troubleshooting_Tool.py
@@ -45,7 +45,7 @@ missing module named urllib.quote - imported by urllib, asn1crypto._iri, request
 missing module named grp - imported by shutil, tarfile, pathlib, distutils.archive_util, C:\Users\g800472\Desktop\Python\DSS_tools\DSC_Troubleshooting_Tool\DSC_Troubleshooting_Tool.py
 missing module named pwd - imported by posixpath, shutil, tarfile, http.server, webbrowser, getpass, netrc, pathlib, distutils.util, distutils.archive_util, C:\Users\g800472\Desktop\Python\DSS_tools\DSC_Troubleshooting_Tool\DSC_Troubleshooting_Tool.py
 missing module named _dummy_threading - imported by dummy_threading, C:\Users\g800472\Desktop\Python\DSS_tools\DSC_Troubleshooting_Tool\DSC_Troubleshooting_Tool.py
-missing module named org - imported by copy, C:\Users\g800472\Desktop\Python\DSS_tools\DSC_Troubleshooting_Tool\DSC_Troubleshooting_Tool.py
+missing module named 'org.python' - imported by copy, setuptools.sandbox, C:\Users\g800472\Desktop\Python\DSS_tools\DSC_Troubleshooting_Tool\DSC_Troubleshooting_Tool.py, xml.sax
 missing module named ConfigParser - imported by numpy.distutils.system_info, numpy.distutils.npy_pkg_config, pymysql.optionfile
 missing module named scipy - imported by numpy.testing._private.nosetester
 missing module named 'nose.util' - imported by numpy.testing._private.noseclasses
