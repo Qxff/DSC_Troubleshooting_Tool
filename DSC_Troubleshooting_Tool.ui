@@ -120,7 +120,7 @@
    </palette>
   </property>
   <property name="windowTitle">
-   <string>DSC Troubleshooting Tool</string>
+   <string>DSC Troubleshooting Tool Suite</string>
   </property>
   <property name="windowIcon">
    <iconset resource="donkey.qrc">
@@ -279,7 +279,7 @@
      <enum>QTabWidget::Rounded</enum>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>3</number>
     </property>
     <property name="elideMode">
      <enum>Qt::ElideNone</enum>
@@ -838,7 +838,7 @@ p, li { white-space: pre-wrap; }
             <bool>true</bool>
            </property>
            <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Alarm occurred on &lt;span style=&quot; color:#000000;&quot;&gt;both&lt;/span&gt; below DSC&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Alarm occurred on &lt;span style=&quot; color:#000000;&quot;&gt;both&lt;/span&gt;  DSC below&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
@@ -2466,15 +2466,15 @@ p, li { white-space: pre-wrap; }
     </widget>
     <widget class="QWidget" name="tab_3">
      <attribute name="title">
-      <string>DSC Internal Cross Ping</string>
+      <string>DSC Inter-Network Ping</string>
      </attribute>
      <widget class="QTextEdit" name="textEdit_log_name_content">
       <property name="geometry">
        <rect>
         <x>540</x>
-        <y>220</y>
+        <y>260</y>
         <width>721</width>
-        <height>321</height>
+        <height>281</height>
        </rect>
       </property>
       <property name="palette">
@@ -2656,7 +2656,7 @@ font: 75 12pt &quot;Sitka Small&quot;;</string>
       <property name="geometry">
        <rect>
         <x>540</x>
-        <y>80</y>
+        <y>120</y>
         <width>721</width>
         <height>16</height>
        </rect>
@@ -2669,7 +2669,7 @@ font: 75 12pt &quot;Sitka Small&quot;;</string>
       <property name="geometry">
        <rect>
         <x>536</x>
-        <y>20</y>
+        <y>60</y>
         <width>721</width>
         <height>52</height>
        </rect>
@@ -2709,14 +2709,14 @@ font: 75 12pt &quot;Sitka Small&quot;;</string>
            <second>0</second>
            <year>2018</year>
            <month>9</month>
-           <day>27</day>
+           <day>26</day>
           </datetime>
          </property>
          <property name="date">
           <date>
            <year>2018</year>
            <month>9</month>
-           <day>27</day>
+           <day>26</day>
           </date>
          </property>
          <property name="minimumDateTime">
@@ -2726,7 +2726,7 @@ font: 75 12pt &quot;Sitka Small&quot;;</string>
            <second>0</second>
            <year>2018</year>
            <month>1</month>
-           <day>5</day>
+           <day>4</day>
           </datetime>
          </property>
          <property name="currentSection">
@@ -2847,14 +2847,14 @@ font: 75 12pt &quot;Sitka Small&quot;;</string>
            <second>0</second>
            <year>2018</year>
            <month>9</month>
-           <day>27</day>
+           <day>26</day>
           </datetime>
          </property>
          <property name="date">
           <date>
            <year>2018</year>
            <month>9</month>
-           <day>27</day>
+           <day>26</day>
           </date>
          </property>
          <property name="minimumDateTime">
@@ -2864,7 +2864,7 @@ font: 75 12pt &quot;Sitka Small&quot;;</string>
            <second>0</second>
            <year>2018</year>
            <month>1</month>
-           <day>5</day>
+           <day>4</day>
           </datetime>
          </property>
          <property name="currentSection">
@@ -2887,7 +2887,7 @@ font: 75 12pt &quot;Sitka Small&quot;;</string>
       <property name="geometry">
        <rect>
         <x>540</x>
-        <y>100</y>
+        <y>140</y>
         <width>721</width>
         <height>104</height>
        </rect>
@@ -3128,6 +3128,78 @@ p, li { white-space: pre-wrap; }
        </item>
       </layout>
      </widget>
+     <widget class="QLabel" name="label_53">
+      <property name="geometry">
+       <rect>
+        <x>541</x>
+        <y>17</y>
+        <width>354</width>
+        <height>19</height>
+       </rect>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>600</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt; font-weight:600; color:#ff0000;&quot;&gt;Realtime &lt;/span&gt;&lt;span style=&quot; font-size:12pt; font-weight:600; color:#00aa35;&quot;&gt;monitoring of DSC Inter-network:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_54">
+      <property name="geometry">
+       <rect>
+        <x>901</x>
+        <y>19</y>
+        <width>308</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>600</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://dal-roaming-nms.syniverse.com/roaming/dsc?a=browse&amp;amp;e=now&amp;amp;focus=&amp;amp;s=e-12h&amp;amp;dv=&amp;amp;bv=&amp;amp;sv=&amp;amp;ngf=&amp;amp;pr=dscInterNetworkPacketLossRate&amp;amp;search=&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;LightNMS: Realtime monitoring of DSC Inter-network (Click here)&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="openExternalLinks">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="Line" name="line_16">
+      <property name="geometry">
+       <rect>
+        <x>540</x>
+        <y>40</y>
+        <width>721</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_5">
+     <attribute name="title">
+      <string>Trace File Download Tool</string>
+     </attribute>
+     <widget class="QLabel" name="label_52">
+      <property name="geometry">
+       <rect>
+        <x>320</x>
+        <y>160</y>
+        <width>501</width>
+        <height>131</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;span style=&quot; font-size:72pt; font-weight:600; color:#00aa00;&quot;&gt;Pending&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_4">
      <attribute name="title">
@@ -3266,14 +3338,14 @@ p, li { white-space: pre-wrap; }
            <second>0</second>
            <year>2018</year>
            <month>9</month>
-           <day>27</day>
+           <day>26</day>
           </datetime>
          </property>
          <property name="date">
           <date>
            <year>2018</year>
            <month>9</month>
-           <day>27</day>
+           <day>26</day>
           </date>
          </property>
          <property name="minimumDateTime">
@@ -3283,7 +3355,7 @@ p, li { white-space: pre-wrap; }
            <second>0</second>
            <year>2018</year>
            <month>1</month>
-           <day>5</day>
+           <day>4</day>
           </datetime>
          </property>
          <property name="currentSection">
@@ -3334,14 +3406,14 @@ p, li { white-space: pre-wrap; }
            <second>0</second>
            <year>2018</year>
            <month>9</month>
-           <day>27</day>
+           <day>26</day>
           </datetime>
          </property>
          <property name="date">
           <date>
            <year>2018</year>
            <month>9</month>
-           <day>27</day>
+           <day>26</day>
           </date>
          </property>
          <property name="minimumDateTime">
@@ -3351,7 +3423,7 @@ p, li { white-space: pre-wrap; }
            <second>0</second>
            <year>2018</year>
            <month>1</month>
-           <day>5</day>
+           <day>4</day>
           </datetime>
          </property>
          <property name="currentSection">
@@ -4196,7 +4268,7 @@ p, li { white-space: pre-wrap; }
      </rect>
     </property>
     <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Product of Syniverse Insight Tailor Team. Version: 3.3, 2018-11-29&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#0bf4cd;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#000000;&quot;&gt;Product of Syniverse Insight Tailor Team. Version: 3.5, 2018-12-21&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#0bf4cd;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_34">

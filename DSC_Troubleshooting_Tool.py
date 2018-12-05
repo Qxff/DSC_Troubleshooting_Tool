@@ -29,11 +29,25 @@ v1.2	2018.05.14
 		6. Add BGP/IP prefix check
 		7. Ping tool: add customer election/peer election
 		8. Popup send mail window if can't find the peer/realm in ccb
+
+v3.4	2018.11.25
+		New function:
+		1. Send mail
+		2. TraceRoute Ping
+		3. DSC Internal Cross Ping
+		4. Realtime monitoring of DSC Inter-network
 		
+		Fix bug:
+		1. Add maintenance: special character check to prevent program crash
+
+v3.5	2018.12.21
+		New function:
+		1. Add maintenance: send calendar
 
 
 Pending function: 
-1. UPX compressed, smaller size 20M --> 15M
+1. Check maintenance: popup new window with pretty table
+2. Multi-service support
 
 *******************************************************************************************************"""
 
@@ -52,10 +66,11 @@ from PyQt5.QtWidgets import *
 from DSC_Troubleshooting_Tool_ui import *
 from DSC_Login_ui import *
 from Input_alarms_ui import *
-from ssh_ping_cmd import ssh_onetime_ping, ssh_jump_server_cmd,ssh_jump_server_juniper_cmd,ssh_jump_server_cisco_cmd,ssh_nohup_cmd
-from SendEmail import sendemail,html_line_break
+from ssh_ping_cmd import ssh_onetime_ping, ssh_jump_server_cmd,ssh_jump_server_juniper_cmd,ssh_jump_server_cisco_cmd,ssh_nohup_cmd,ssh_onetime_ping_check_maintenance
+from SendEmail import sendemail,html_line_break,send_calendar
 from get_router_list_from_traceroute import *
 from All_Day_Ping_Result_ui import *
+from check_maintenance_popup_ui import *
 import threading
 import pyperclip
 import tarfile
@@ -70,6 +85,8 @@ from matplotlib import style
 import matplotlib.dates as mdates
 import matplotlib.ticker as mticker
 from matplotlib.ticker import FuncFormatter
+import pytz
+from tzlocal import get_localzone
 
 """****************************************************************************************************"""
 """***************************             1. Main Window            **********************************"""
@@ -80,6 +97,7 @@ class MyMainWindow(QMainWindow, Ui_MainWindow):
 	account_result_signal = pyqtSignal(str)
 	send_ping_result_signal = pyqtSignal(str,int)
 	start_7_24_ping_signal = pyqtSignal(int,str)
+	current_maintenance_list_signal=pyqtSignal(list)
 	
 	update_textEdit_log_name_content_signal=pyqtSignal(str)
 	show_download_kpi_file_popup_signal=pyqtSignal(str)
@@ -630,26 +648,29 @@ where ni.item='DSC_Peer' group by ni.value;"""
 			results=""
 		#return(results)
 
-		"""import csv
-		if os.path.exists("file")==0:
-			os.mkdir("file")
-		with open('.\\file\ccb_online.csv', 'w',newline='') as csvfile:
-			spamwriter = csv.writer(csvfile)
-			string=[]
-			for keys in results[1]:
-				string.append(keys)
-			spamwriter.writerow(string)
-			for row in results:
+		try:
+			import csv
+			if os.path.exists("file")==0:
+				os.mkdir("file")
+			with open('.\\file\ccb_online.csv', 'w',newline='',encoding='utf-8') as csvfile:
+				spamwriter = csv.writer(csvfile)
 				string=[]
-				string.append(row['Virtual_Realm'])
-				string.append(row['Operator'])
-				string.append(row['DSC_Peer'])
-				string.append(row['Hostname'])
-				string.append(row['SCTP_IP'])
-				string.append(row['Pingable'])
-				string.append(row['WorkMode'])
-				string.append(row['Customer_Contact'])
-				spamwriter.writerow(string)"""
+				for keys in results[1]:
+					string.append(keys)
+				spamwriter.writerow(string)
+				for row in results:
+					string=[]
+					string.append(row['Virtual_Realm'])
+					string.append(row['Operator'])
+					string.append(row['DSC_Peer'])
+					string.append(row['Hostname'])
+					string.append(row['SCTP_IP'])
+					string.append(row['Pingable'])
+					string.append(row['WorkMode'])
+					string.append(row['Customer_Contact'])
+					spamwriter.writerow(string)
+		except:
+			pass
 		return(results)
 
 	def generatecmd_troubleshooting(self,none):
@@ -725,9 +746,10 @@ where ni.item='DSC_Peer' group by ni.value;"""
 		global customer_email_list,customer_nodes
 		self.syniverse_peer_dic={'HK DSC':'hkg-01.dra.ipx.syniverse.3gppnetwork.org','SG DSC':'sng-01.dra.ipx.syniverse.3gppnetwork.org','AMS DSC':'ams-01.dra.ipx.syniverse.3gppnetwork.org',
 		'FRT DSC':'frt-01.dra.ipx.syniverse.3gppnetwork.org','CHI DSC':'chi-01.dra.ipx.syniverse.3gppnetwork.org', 'DAL DSC':'dal-01.dra.ipx.syniverse.3gppnetwork.org','Null':''}
-		print("Trigger send email for Null")
+		
 		try:
 			if customer_email_list=="Null":
+				print("Trigger send email for Null")
 				customer_email_list="DSS_Route_Provision@syniverse.com;wind.wang@syniverse.com;joe.mercado@syniverse.com"
 				Subject="Can't find the peer/customer contact in CCB for 10302/10312 alarms"
 				email_body='''<html><body>
@@ -903,8 +925,8 @@ where ni.item='DSC_Peer' group by ni.value;"""
 						print('maintenance_note:')
 						print(maintenance_note)
 	
-						maintenance_info='Customer: '+maintenance_customer+'\nStart Time: '+maintenance_starttime+'\nEnd Time: '+maintenance_endtime+'\nNote: '+maintenance_note+'\nOwner: '+maintenance_owner
-						QMessageBox.information(self,"Warning","There's maintenance ongoing for "+self.lineEdit_customer.text()+"!\nPlease don't send mail to customer.\n\nMaintenance detials:\n"+maintenance_info,QMessageBox.Ok)
+						maintenance_info='Customer: '+maintenance_customer+'\nStart Time(UTC): '+maintenance_starttime+'\nEnd Time(UTC): '+maintenance_endtime+'\nNote: '+maintenance_note+'\nOwner: '+maintenance_owner
+						QMessageBox.information(self,"Warning","There's maintenance ongoing for "+self.lineEdit_customer.text()+"!\nPlease don't send mail to customer.\n\nMaintenance details:\n"+maintenance_info,QMessageBox.Ok)
 						return 0
 				QMessageBox.information(self,"Information","No maintenance ongoing for "+self.lineEdit_customer.text()+', click "OK" to send mail.',QMessageBox.Ok)
 				if customer_email_list!='Null':
@@ -1845,8 +1867,8 @@ where ni.item='DSC_Peer' group by ni.value;"""
 							print('maintenance_note:')
 							print(maintenance_note)
 
-							maintenance_info='Customer: '+maintenance_customer+'\nStart Time: '+maintenance_starttime+'\nEnd Time: '+maintenance_endtime+'\nNote: '+maintenance_note+'\nOwner: '+maintenance_owner
-							QMessageBox.information(self,"Warning","There's maintenance ongoing for "+self.comboBox_customer_name_send_mail.currentText()+"!\nPlease don't send mail to customer.\n\nMaintenance detials:\n"+maintenance_info,QMessageBox.Ok)
+							maintenance_info='Customer: '+maintenance_customer+'\nStart Time(UTC): '+maintenance_starttime+'\nEnd Time(UTC): '+maintenance_endtime+'\nNote: '+maintenance_note+'\nOwner: '+maintenance_owner
+							QMessageBox.information(self,"Warning","There's maintenance ongoing for "+self.comboBox_customer_name_send_mail.currentText()+"!\nPlease don't send mail to customer.\n\nMaintenance details:\n"+maintenance_info,QMessageBox.Ok)
 							return 0
 					QMessageBox.information(self,"Information","No maintenance ongoing for "+self.comboBox_customer_name_send_mail.currentText()+', click "OK" to send mail.',QMessageBox.Ok)
 					sendemail(to_list,cc_list,Subject,email_body)
@@ -1886,6 +1908,18 @@ where ni.item='DSC_Peer' group by ni.value;"""
 		
 		customer_name=self.comboBox_customer_name_maintenance.currentText()
 		notes=self.textEdit_maintenance_notes.toPlainText()
+		
+		#try:
+		#	notes.encode('utf8')
+		#	print('encode ok')
+		#except Exception as e:
+		#	print(e)
+		#	QMessageBox.information(self,"Warning",'Please check format of "Note".',QMessageBox.Ok)
+		
+		if '—' in notes:
+			QMessageBox.information(self,"Warning",'Please check format of "Note"."—" is not allowed.',QMessageBox.Ok)
+			return 0
+		
 		owner=self.lineEdit_GID.text()
 		
 		maintenance_item=[customer_name,start_datetime,end_datetime,notes,owner]
@@ -1921,7 +1955,9 @@ where ni.item='DSC_Peer' group by ni.value;"""
 				ssh_onetime_ping('10.162.28.185',username,password,cmd)
 				
 				os.remove(mtdirectory+'\\DSC_Maintenance_Record.csv')
-				QMessageBox.information(self,"Information","Congrats! Add maintenance successfully!",QMessageBox.Ok)
+				QMessageBox.information(self,"Information","Congrats! Add maintenance successfully!\nClick 'OK' to send meeting request to relevant teams.",QMessageBox.Ok)
+				Subject='Maintenance notification from customer: '+maintenance_item[0]
+				send_calendar(['TTAC@syniverse.com','scc@syniverse.com','PS-RCC-AP@syniverse.com','ao-rcc-ap@syniverse.com','DSS_Route_Provision@syniverse.com'],start_datetime,end_datetime,Subject, maintenance_item[3])
 			else:
 				print('csv file already exist')
 				
@@ -1950,24 +1986,92 @@ where ni.item='DSC_Peer' group by ni.value;"""
 				ssh_onetime_ping('10.162.28.185',username,password,cmd)
 				
 				os.remove(mtdirectory+'\\DSC_Maintenance_Record.csv')
-				QMessageBox.information(self,"Information","Congrats! Maintenance added successfully!",QMessageBox.Ok)
-	
+				QMessageBox.information(self,"Information","Congrats! Maintenance added successfully!\nClick 'OK' to send meeting request to relevant teams.",QMessageBox.Ok)
+				Subject='Maintenance notification from customer: '+maintenance_item[0]
+				
+				tz = get_localzone()
+				print(tz)
+				
+				#start_datetime=self.dateTimeEdit_start_time_maintenance.dateTime().toString('yyyy-MM-dd hh:mm')
+				start_datetime=self.dateTimeEdit_start_time_maintenance.dateTime().toString('yyyy,MM,dd,hh,mm')
+				print(start_datetime)
+				
+				t = datetime(int(start_datetime_year),int(start_datetime_month),int(start_datetime_day),int(start_datetime_hour),int(start_datetime_min))
+				print(t)
+				#start_datetime=self.dateTimeEdit_start_time_maintenance.dateTime()
+				
+				utc = pytz.utc
+				utc_dt = utc.localize(t)
+				print(utc_dt)
+				start_date_time = str(utc_dt.astimezone(tz)).split('+')[0]
+				print(start_date_time)
+				
+				
+				t_end = datetime(int(end_datetime_year),int(end_datetime_month),int(end_datetime_day),int(end_datetime_hour),int(end_datetime_min))
+				print(t_end)
+				utc_dt_end = utc.localize(t_end)
+				
+				end_date_time = str(utc_dt_end.astimezone(tz)).split('+')[0]
+				print(end_date_time)
+				
+				#end_datetime=self.dateTimeEdit_end_time_maintenance.dateTime().toString('yyyy-MM-dd hh:mm')
+				#print(end_datetime)
+				send_calendar(['TTAC@syniverse.com','scc@syniverse.com','PS-RCC-AP@syniverse.com','ao-rcc-ap@syniverse.com','DSS_Route_Provision@syniverse.com'],start_date_time,end_date_time,Subject, maintenance_item[3])
+			
 	def check_maintenance(self):
 		global username, password,ccb_info
 		
 		cmd='cat /data2/TMP/tsdss/DSC_Send_Mail_Tool/DSC_Maintenance_Record.csv'
 		current_maintenance=ssh_onetime_ping('10.162.28.185',username,password,cmd)
+		#current_maintenance=ssh_onetime_ping_check_maintenance('10.162.28.185',username,password,cmd)
+		
 		print(current_maintenance)
 		print(type(current_maintenance))
 		
-		self.textEdit_mail_body.setText('All current maintenance listed here:\n\nCustomer	Start Time	End Time	Notes	Owner\n\n')
+		"""self.textEdit_mail_body.setText('All current maintenance listed here:\n\nCustomer	Start Time	End Time	Notes	Owner\n\n')
 		for item in current_maintenance:
 			if '\n' in item:
 				item=item.split('\n')[0]
 			print(item)
 			current_maintenance_old=self.textEdit_mail_body.toPlainText()
 			current_maintenance_old=current_maintenance_old[:-1]
-			self.textEdit_mail_body.setText(current_maintenance_old+item)
+			self.textEdit_mail_body.setText(current_maintenance_old+item)"""
+			
+		
+		print('check_maintenance_tabwidget:\n')
+		
+		
+		if current_maintenance==[]:
+			print('csv file not exist, no maintenance')
+			QMessageBox.information(self,"Information","There's no maintenance till now.",QMessageBox.Ok)
+		else:
+			print('csv file already exist, maintenance exist')
+			
+			mtdirectory=os.getcwd()+r'\\file\\maintenance_files\\'
+			if not os.path.exists(mtdirectory):
+				os.makedirs(mtdirectory)
+			
+			transport = paramiko.Transport('10.162.28.185', 22)
+			transport.connect(username=username, password=password)
+			sftp = paramiko.SFTPClient.from_transport(transport)
+			sftp.get('/data2/TMP/tsdss/DSC_Send_Mail_Tool/DSC_Maintenance_Record.csv',mtdirectory+'\\DSC_Maintenance_Record.csv')
+			print('download ok')
+			
+			current_maintenance_list=[]
+			with open(mtdirectory+'/DSC_Maintenance_Record.csv', 'r') as mt_files:
+				#current_maintenance_list=mt_files.readlines()
+				cv = csv.reader(mt_files)
+				#print(type(cv))
+				#print(cv)
+				
+				for line in cv: 
+					if line!=[]:
+						current_maintenance_list.append(line)
+				
+				print(current_maintenance_list)
+			self.current_maintenance_list_signal.emit(current_maintenance_list)
+			os.remove(mtdirectory+'\\DSC_Maintenance_Record.csv')
+
 
 
 """****************************************************************************************************"""
@@ -2024,7 +2128,7 @@ class Input_alarms(QMainWindow, Ui_Dialog_input_alarms):
 
 
 """****************************************************************************************************"""
-"""***************************          4. All day ping result window          ********************************"""
+"""***********************          4. All day ping result window          ****************************"""
 """****************************************************************************************************"""
 
 class All_Day_Ping_Result(QMainWindow, Ui_all_day_ping_result_popup):
@@ -2153,7 +2257,58 @@ class All_Day_Ping_Result(QMainWindow, Ui_all_day_ping_result_popup):
 
 
 """****************************************************************************************************"""
-"""***************************                  5. Run               **********************************"""
+"""*********************          5. Check maintenance result window          *************************"""
+"""****************************************************************************************************"""
+
+class Check_maintenance_popup(QMainWindow, Ui_check_maintenance_popup):
+
+	def __init__(self, parent=None):    
+		super(Check_maintenance_popup, self).__init__(parent)
+		self.setupUi(self)
+		self.tableWidget_check_maintenance_result.horizontalHeader().setSectionResizeMode(3)
+
+	def show_current_maintenance(self,current_maintenance_list):
+
+		print(current_maintenance_list)
+		self.tableWidget_check_maintenance_result.setRowCount(len(current_maintenance_list))
+		self.tableWidget_check_maintenance_result.setColumnCount(5)
+
+		rowindex=0
+		for item in current_maintenance_list:
+			print(item)
+			maintenance_customer=QTableWidgetItem(item[0])
+			maintenance_starttime=QTableWidgetItem(item[1])
+			maintenance_endtime=QTableWidgetItem(item[2])
+			maintenance_note=QTableWidgetItem(item[3])
+			maintenance_owner=QTableWidgetItem(item[4])
+			#print(maintenance_customer)
+			
+			self.tableWidget_check_maintenance_result.setItem(rowindex,0,maintenance_customer)
+			self.tableWidget_check_maintenance_result.setItem(rowindex,1,maintenance_starttime)
+			self.tableWidget_check_maintenance_result.setItem(rowindex,2,maintenance_endtime)
+			self.tableWidget_check_maintenance_result.setItem(rowindex,3,maintenance_note)
+			self.tableWidget_check_maintenance_result.setItem(rowindex,4,maintenance_owner)
+
+			#self.tableWidget_check_maintenance_result.item(rowindex,1).setForeground(QBrush(QColor(255,0,0)))
+
+			rowindex=rowindex+1
+		
+		#column width adjust with content
+		self.tableWidget_check_maintenance_result.horizontalHeader().setSectionResizeMode(3)
+		
+		#add header
+		horizontalHeader=['Customer','Start Time','End Time','Notes','Owner']
+		self.tableWidget_check_maintenance_result.setHorizontalHeaderLabels(horizontalHeader)
+
+		check_maintenance_popup.show()
+
+
+
+
+
+
+"""****************************************************************************************************"""
+"""***************************                  6. Run               **********************************"""
 """****************************************************************************************************"""
 if __name__=="__main__":  
 	app = QApplication(sys.argv)  
@@ -2180,6 +2335,8 @@ if __name__=="__main__":
 	input_alarms.alarms_inputed_signal.connect(myWin.alarm_content_handler)
 	input_alarms.alarms_inputed_signal.connect(myWin.generatecmd_troubleshooting)
 	
-
+	check_maintenance_popup=Check_maintenance_popup()
+	myWin.current_maintenance_list_signal.connect(check_maintenance_popup.show_current_maintenance)
+	
 
 	sys.exit(app.exec_())  

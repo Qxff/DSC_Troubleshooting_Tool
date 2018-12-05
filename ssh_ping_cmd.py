@@ -83,6 +83,44 @@ def ssh_onetime_ping(hostname,username,password,cmd):
 #ssh_onetime_ping("10.162.28.187","g800472","Python666$","ping -I 173.209.220.115 111.71.235.1 -s1472 -c3")
 
 
+"""****************************************************************************************************"""
+"""*****************            ssh ping onetime for check maintenance           **********************"""
+"""****************************************************************************************************"""
+
+def ssh_onetime_ping_check_maintenance(hostname,username,password,cmd):
+
+	#paramiko.util.log_to_file('paramiko.log')
+	
+	#creat SSH object
+	ssh = paramiko.SSHClient()
+
+	#skip key
+	ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+	#connect to DSC
+	ssh.connect(hostname=hostname, port=22, username=username, password=password)
+	#stdin.write("Y")
+
+	#execute command
+	stdin, stdout, stderr = ssh.exec_command(cmd)
+	
+	result=[]
+	#stdout._set_mode('b')
+	return stdout.read().decode('utf-8')
+	#for std in stdout.readlines():
+	#	print(std.strip())
+	#print(std.strip())
+	#return result
+	#print(result)
+
+	for std in stderr.readlines():
+		#print(std.strip())
+		result.append(std.strip())
+	return result
+	#print(result)
+
+	#close the connection
+	ssh.close()
 
 
 """****************************************************************************************************"""
@@ -267,7 +305,7 @@ def ssh_nohup_cmd(hostname,username,password,cmd):
 if __name__=="__main__": 
 	print('before')
 	#results=ssh_jump_server_juniper_cmd("r002-hnk2-ngn.ncc.syniverse.com","g800472","Selenium666$","ping 192.168.71.206 count 5 rapid wait 1","show system uptime | match current")
-	results=ssh_jump_server_cisco_cmd("airtel-bng-india.ncc.syniverse.com","g800472","Selenium666$","show clock","ping 131.166.150.157 ")
+	#results=ssh_jump_server_cisco_cmd("airtel-bng-india.ncc.syniverse.com","g800472","Selenium666$","show clock","ping 131.166.150.157 ")
 	print('after')
 	print('results: ')
 	print(results)
