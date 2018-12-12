@@ -42,12 +42,13 @@ v3.4	2018.11.25
 
 v3.5	2018.12.21
 		New function:
-		1. Add maintenance: send calendar
+		1. Add maintenance: send outlook meeting function
+		2. Check maintenance: popup new window with pretty table
+		3. Optimization of "DSC Inter-Network Ping" function
 
 
 Pending function: 
-1. Check maintenance: popup new window with pretty table
-2. Multi-service support
+1. Multi-service support
 
 *******************************************************************************************************"""
 
@@ -975,7 +976,7 @@ where ni.item='DSC_Peer' group by ni.value;"""
 			#router1=router_list[3]['router_name']"""
 		
 		if self.textEdit_incident_description.toPlainText() =="":
-			QMessageBox.information(self,"Warning","Please input the INC description",QMessageBox.Ok)
+			QMessageBox.information(self,"Warning","Please input the 'INC description'.",QMessageBox.Ok)
 		else:
 			try:
 				#all_Day_Ping_Result.show()
@@ -986,7 +987,8 @@ where ni.item='DSC_Peer' group by ni.value;"""
 					t.start()
 				#ping_result=ssh_jump_server_juniper_cmd(router1,username,password,"ping 192.168.71.206 count 5 rapid wait 1","show system uptime | match current")
 				#print(ping_result)
-			except:
+			except Exception as e:
+				print(e)
 				#all_Day_Ping_Result.close()
 				QMessageBox.information(self,"Warning","Please analyze your traceroute result first(step2)",QMessageBox.Ok)
 			else:
@@ -1119,20 +1121,28 @@ where ni.item='DSC_Peer' group by ni.value;"""
 	def internal_cross_ping_show_log_content(self):
 		global username, password
 		
+		self.textEdit_log_name_content.setPlainText('')
 		if self.textEdit_log_file_name.toPlainText()=='':
 			QMessageBox.information(self,"Warning","Please input the log file name you need to check(* is allowed)",QMessageBox.Ok)
 		else:
 			log_file_name=self.textEdit_log_file_name.toPlainText()
 			cmd='cat /data2/TMP/tsdss/DSC_Internal_Cross_Ping_Tool/internal_ping_logs/'+log_file_name
+			print(cmd)
 			log_content=ssh_onetime_ping('10.162.28.185',username,password,cmd)
+			print('Got package loss content, now start for loop')
 			
-			self.textEdit_log_name_content.setPlainText('')
-			for item in log_content:
+			"""for item in log_content:
 				log_name_content_old=self.textEdit_log_name_content.toPlainText()
 	
 				self.textEdit_log_name_content.setPlainText(log_name_content_old+item)
-				self.textEdit_log_name_content.moveCursor(QtGui.QTextCursor.End) 
-				
+				self.textEdit_log_name_content.moveCursor(QtGui.QTextCursor.End) """
+			self.textEdit_log_name_content.setPlainText(''.join(log_content))
+			#self.textEdit_log_name_content.moveCursor(QtGui.QTextCursor.End) 
+			print(log_content)
+			
+			if log_content==[]:
+				QMessageBox.information(self,"Information","No pakage loss for the file name you inputted! ",QMessageBox.Ok)
+			print('for loop done')
 				
 	def start_internal_cross_ping(self):
 		global username, password
@@ -1956,8 +1966,40 @@ where ni.item='DSC_Peer' group by ni.value;"""
 				
 				os.remove(mtdirectory+'\\DSC_Maintenance_Record.csv')
 				QMessageBox.information(self,"Information","Congrats! Add maintenance successfully!\nClick 'OK' to send meeting request to relevant teams.",QMessageBox.Ok)
+				
+				
 				Subject='Maintenance notification from customer: '+maintenance_item[0]
-				send_calendar(['TTAC@syniverse.com','scc@syniverse.com','PS-RCC-AP@syniverse.com','ao-rcc-ap@syniverse.com','DSS_Route_Provision@syniverse.com'],start_datetime,end_datetime,Subject, maintenance_item[3])
+				
+				tz = get_localzone()
+				print(tz)
+				
+				#start_datetime=self.dateTimeEdit_start_time_maintenance.dateTime().toString('yyyy-MM-dd hh:mm')
+				start_datetime=self.dateTimeEdit_start_time_maintenance.dateTime().toString('yyyy,MM,dd,hh,mm')
+				print(start_datetime)
+				
+				t = datetime(int(start_datetime_year),int(start_datetime_month),int(start_datetime_day),int(start_datetime_hour),int(start_datetime_min))
+				print(t)
+				#start_datetime=self.dateTimeEdit_start_time_maintenance.dateTime()
+				
+				utc = pytz.utc
+				utc_dt = utc.localize(t)
+				print(utc_dt)
+				start_date_time = str(utc_dt.astimezone(tz)).split('+')[0]
+				print(start_date_time)
+				
+				
+				t_end = datetime(int(end_datetime_year),int(end_datetime_month),int(end_datetime_day),int(end_datetime_hour),int(end_datetime_min))
+				print(t_end)
+				utc_dt_end = utc.localize(t_end)
+				
+				end_date_time = str(utc_dt_end.astimezone(tz)).split('+')[0]
+				print(end_date_time)
+				
+				#end_datetime=self.dateTimeEdit_end_time_maintenance.dateTime().toString('yyyy-MM-dd hh:mm')
+				#print(end_datetime)
+				send_calendar(['TTAC@syniverse.com','scc@syniverse.com','PS-RCC-AP@syniverse.com','ao-rcc-ap@syniverse.com','DSS_Route_Provision@syniverse.com'],start_date_time,end_date_time,Subject, maintenance_item[3])
+			
+				
 			else:
 				print('csv file already exist')
 				
@@ -1987,6 +2029,7 @@ where ni.item='DSC_Peer' group by ni.value;"""
 				
 				os.remove(mtdirectory+'\\DSC_Maintenance_Record.csv')
 				QMessageBox.information(self,"Information","Congrats! Maintenance added successfully!\nClick 'OK' to send meeting request to relevant teams.",QMessageBox.Ok)
+				
 				Subject='Maintenance notification from customer: '+maintenance_item[0]
 				
 				tz = get_localzone()
@@ -2043,7 +2086,7 @@ where ni.item='DSC_Peer' group by ni.value;"""
 		
 		if current_maintenance==[]:
 			print('csv file not exist, no maintenance')
-			QMessageBox.information(self,"Information","There's no maintenance till now.",QMessageBox.Ok)
+			QMessageBox.information(self,"Information","There's no maintenance for now.",QMessageBox.Ok)
 		else:
 			print('csv file already exist, maintenance exist')
 			
@@ -2270,8 +2313,10 @@ class Check_maintenance_popup(QMainWindow, Ui_check_maintenance_popup):
 	def show_current_maintenance(self,current_maintenance_list):
 
 		print(current_maintenance_list)
+		
 		self.tableWidget_check_maintenance_result.setRowCount(len(current_maintenance_list))
 		self.tableWidget_check_maintenance_result.setColumnCount(5)
+		
 
 		rowindex=0
 		for item in current_maintenance_list:
@@ -2289,16 +2334,29 @@ class Check_maintenance_popup(QMainWindow, Ui_check_maintenance_popup):
 			self.tableWidget_check_maintenance_result.setItem(rowindex,3,maintenance_note)
 			self.tableWidget_check_maintenance_result.setItem(rowindex,4,maintenance_owner)
 
-			#self.tableWidget_check_maintenance_result.item(rowindex,1).setForeground(QBrush(QColor(255,0,0)))
-
+			#self.tableWidget_check_maintenance_result.setHorizontalHeaderLabels(horizontalHeader)
 			rowindex=rowindex+1
 		
 		#column width adjust with content
-		self.tableWidget_check_maintenance_result.horizontalHeader().setSectionResizeMode(3)
+		self.tableWidget_check_maintenance_result.horizontalHeader().setSectionResizeMode(1)
 		
 		#add header
 		horizontalHeader=['Customer','Start Time','End Time','Notes','Owner']
 		self.tableWidget_check_maintenance_result.setHorizontalHeaderLabels(horizontalHeader)
+		
+		
+		
+		for index in range(self.tableWidget_check_maintenance_result.columnCount()): 
+			headItem = self.tableWidget_check_maintenance_result.horizontalHeaderItem(index)
+			headItem.setFont(QFont("Arial", 10, QFont.Bold)) 
+			#headItem.setForeground(QBrush(Qt.gray))
+			#headItem.setBackground(QBrush(QColor(300,20,10)))
+			
+			#headItem.setTextAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+		
+		#self.tableWidget_check_maintenance_result.resizeColumnsToContents()
+		#self.tableWidget_check_maintenance_result.resizeRowsToContents()
+
 
 		check_maintenance_popup.show()
 
